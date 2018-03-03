@@ -25,7 +25,7 @@ class YoutubeDlDownloader : Downloader {
             try {
                 val dlResponse = YoutubeDL.execute(dlRequest, { progress, _ ->
                     if (!it.isDisposed) {
-                        it.onNext(progress.toDouble())
+                        it.onNext(progress.toDouble() / 100)
                     }
                 })
 
@@ -33,14 +33,13 @@ class YoutubeDlDownloader : Downloader {
                     it.onError(YoutubeDLException("Non-zero exit code: '${dlResponse.exitCode}'"))
                 }
 
+                if (!it.isDisposed) {
+                    it.onComplete()
+                }
             } catch (e: YoutubeDLException) {
                 if (!it.isDisposed) {
                     it.onError(e)
                 }
-            }
-
-            if (!it.isDisposed) {
-                it.onComplete()
             }
         }
     }

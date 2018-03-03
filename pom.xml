@@ -126,6 +126,14 @@
       <version>2.0.1</version>
     </dependency>
 
+    <!--YOUTUBE - SEARCH-->
+    <dependency>
+      <groupId>com.github.TeamNewPipe</groupId>
+      <artifactId>NewPipeExtractor</artifactId>
+      <version>v0.11.5</version>
+    </dependency>
+
+
   </dependencies>
 
 </project>

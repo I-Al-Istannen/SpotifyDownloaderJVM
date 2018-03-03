@@ -33,7 +33,11 @@ class FfmpegWrapper(
         return loudnormFirstPass(input).flatMap {
             when (it) {
                 is FfmpegFirstPassProgress.FirstPassProgress -> {
-                    return@flatMap Observable.just(it.progress / 2)
+                    if (it.progress < 1) {
+                        Observable.just(it.progress / 2)
+                    } else {
+                        Observable.empty<Double>()
+                    }
                 }
                 is Finished -> {
                     return@flatMap loudnormSecondPass(input, it).map { it / 2 + 0.5 }
@@ -163,7 +167,9 @@ class FfmpegWrapper(
 
                     if (extractTime != null) {
                         if (!it.isDisposed) {
-                            it.onNext(extractTime.toDouble() / durationMs)
+                            if (extractTime < durationMs) {
+                                it.onNext(extractTime.toDouble() / durationMs)
+                            }
                         }
                     }
                 }
