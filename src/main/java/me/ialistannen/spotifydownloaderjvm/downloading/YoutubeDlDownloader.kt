@@ -23,7 +23,7 @@ class YoutubeDlDownloader : Downloader {
             }
 
             try {
-                val dlResponse = YoutubeDL.execute(dlRequest, { progress, eta ->
+                val dlResponse = YoutubeDL.execute(dlRequest, { progress, _ ->
                     if (!it.isDisposed) {
                         it.onNext(progress.toDouble())
                     }
