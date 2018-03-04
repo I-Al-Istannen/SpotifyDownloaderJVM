@@ -75,9 +75,6 @@ class MainScreenController {
         setupDownloadButton()
         setupFfmpegSettings()
 
-        clientSecret.text = "***REMOVED***"
-        clientId.text = "***REMOVED***"
-
         parallelismSlider.max = ForkJoinPool.getCommonPoolParallelism().toDouble()
     }
 
@@ -125,6 +122,24 @@ class MainScreenController {
                 { array -> array.filterIsInstance<Boolean>().reduce({ one, two -> one || two }) }
         )
         downloadButton.disableProperty().bind(JavaFxObserver.toBinding(disableDownload))
+    }
+
+    /**
+     * Sets the client id.
+     *
+     * @param clientId the client id
+     */
+    fun setClientId(clientId: String) {
+        this.clientId.text = clientId
+    }
+
+    /**
+     * Sets the client secret
+     *
+     * @param clientSecret the client secret
+     */
+    fun setClientSecret(clientSecret: String) {
+        this.clientSecret.text = clientSecret
     }
 
     @FXML

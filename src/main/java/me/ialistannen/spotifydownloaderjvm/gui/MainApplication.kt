@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.layout.Pane
 import javafx.stage.Stage
+import me.ialistannen.spotifydownloaderjvm.gui.main.MainScreenController
 import me.ialistannen.spotifydownloaderjvm.spotify.SynchronizedSimpleDateFormat
 
 class MainApplication : Application() {
@@ -21,6 +22,14 @@ class MainApplication : Application() {
 
         val fxmlLoader = FXMLLoader(javaClass.getResource("/fxml/MainScreen.fxml"))
         val pane: Pane = fxmlLoader.load()
+        val controller: MainScreenController = fxmlLoader.getController()
+
+        if ("client_id" in parameters.named) {
+            controller.setClientId(parameters.named["client_id"]!!)
+        }
+        if ("client_secret" in parameters.named) {
+            controller.setClientSecret(parameters.named["client_secret"]!!)
+        }
 
         primaryStage.scene = Scene(pane)
 
@@ -31,5 +40,10 @@ class MainApplication : Application() {
 }
 
 fun main(args: Array<String>) {
+    if (args.isEmpty()) {
+        println("Supported arguments:")
+        println("--client_id=<client_id>")
+        println("--client_secret=<client_secret>")
+    }
     Application.launch(MainApplication::class.java, *args)
 }
