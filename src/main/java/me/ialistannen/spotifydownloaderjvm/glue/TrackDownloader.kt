@@ -3,6 +3,7 @@ package me.ialistannen.spotifydownloaderjvm.glue
 import io.reactivex.Observable
 import me.ialistannen.spotifydownloaderjvm.downloading.Downloader
 import me.ialistannen.spotifydownloaderjvm.downloading.YoutubeDlDownloader
+import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
 import me.ialistannen.spotifydownloaderjvm.metadata.MetadataInjector
 import me.ialistannen.spotifydownloaderjvm.metadata.Mp3gicMetadataInjector
 import me.ialistannen.spotifydownloaderjvm.normalization.FfmpegNormalizer
@@ -14,6 +15,8 @@ import me.ialistannen.spotifydownloaderjvm.spotify.createSpotifyApiFromClientCre
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.math.roundToInt
+
+typealias Progress = TrackDownloader.DownloadProgress.Progress
 
 class TrackDownloader(
         private val spotifyMetadataFetcher: SpotifyMetadataFetcher,
@@ -29,7 +32,7 @@ class TrackDownloader(
      * @param trackId the ID of the track
      * @param targetFolder the dolder to download to
      */
-    fun downloadTrackTest(trackId: String, targetFolder: Path): Observable<Double> {
+    fun downloadTrackTest(trackId: String, targetFolder: Path): Observable<DownloadProgress> {
         return spotifyMetadataFetcher.getTrackMetadata(trackId)
                 .map {
                     val url = trackUrlSearcher.findTrackUrl(it)
@@ -37,24 +40,39 @@ class TrackDownloader(
                     url to it
                 }
                 .flatMap { pair ->
-                    val file = targetFolder.resolve(pair.second.title.sanitize() + ".mp3")
-                    println("File: $file")
-                    downloader.download(pair.first, file).map {
-                        it / 2
-                    }.concatWith(
-                            normalizer.normalize(file).map { it / 2 + 0.5 }
-                    ).concatWith(
-                            Observable.fromCallable {
-                                metadataInjector.inject(file, pair.second)
-                                1.0
-                            }
-                    )
+                    val metadata = pair.second
+                    val fileName = "${metadata.title.sanitize()}-${metadata.artists[0].sanitize()}.mp3"
+
+                    val file = targetFolder.resolve(fileName)
+                    Observable
+                            .just<DownloadProgress>(DownloadProgress.DownloadMetadata(metadata))
+                            .concatWith(
+                                    downloader.download(pair.first, file).map {
+                                        Progress(it / 2)
+                                    }
+                            )
+                            .concatWith(
+                                    normalizer.normalize(file).map { Progress(it / 2 + 0.5) }
+                            ).concatWith(
+                                    Observable.fromCallable {
+                                        metadataInjector.inject(file, metadata)
+                                        Progress(1.0)
+                                    }
+                            )
                 }
     }
 
     private fun String.sanitize(): String {
-        return replace(Regex("[^a-zA-Z0-9 \\-]"), "")
+        return replace(Regex("[^a-zA-Z0-9 \\-_.]"), "")
                 .replace(" ", "_")
+    }
+
+    /**
+     * Contains information about the progress of the download as well as eventual metadata.
+     */
+    sealed class DownloadProgress {
+        data class Progress(val progress: Double) : DownloadProgress()
+        data class DownloadMetadata(val metadata: Metadata) : DownloadProgress()
     }
 }
 
@@ -80,7 +98,14 @@ fun main(args: Array<String>) {
             Paths.get("/tmp")
     ).subscribe(
             {
-                println("Currently at: ${(it * 100).roundToInt()}")
+                when (it) {
+                    is Progress -> {
+                        println("Currently at: ${(it.progress * 100).roundToInt()}")
+                    }
+                    is TrackDownloader.DownloadProgress.DownloadMetadata -> {
+                        println("Fetching for song: ${it.metadata}")
+                    }
+                }
             },
             {
                 it.printStackTrace()
