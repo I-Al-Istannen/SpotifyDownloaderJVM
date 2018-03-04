@@ -36,7 +36,7 @@
             <Insets bottom="20.0" left="20.0" right="20.0" top="30.0"/>
           </GridPane.margin>
         </JFXTextField>
-        <VBox alignment="CENTER" fillWidth="false" GridPane.columnIndex="1" GridPane.rowIndex="2">
+        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="2">
           <children>
             <Label text="Parallelism" textFill="WHITE">
               <styleClass>
@@ -46,8 +46,12 @@
             </Label>
             <JFXSlider fx:id="parallelismSlider" blockIncrement="1.0" majorTickUnit="1.0" max="4.0"
               maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" min="1.0"
-              minorTickCount="0" prefHeight="62.0" prefWidth="207.0" showTickLabels="true"
-              showTickMarks="true" snapToTicks="true" value="1.0"/>
+              minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true"
+              value="1.0">
+              <VBox.margin>
+                <Insets left="20.0" right="20.0" top="10.0"/>
+              </VBox.margin>
+            </JFXSlider>
           </children>
         </VBox>
         <HBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
@@ -133,7 +137,7 @@
                   maxWidth="1.7976931348623157E308" promptText="FFPROBE path"
                   styleClass="simpleTextField" HBox.hgrow="ALWAYS">
                   <HBox.margin>
-                    <Insets/>
+                    <Insets top="10.0"/>
                   </HBox.margin>
                   <padding>
                     <Insets right="10.0"/>

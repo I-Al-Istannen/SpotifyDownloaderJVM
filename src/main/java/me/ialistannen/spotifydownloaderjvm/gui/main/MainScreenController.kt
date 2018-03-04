@@ -24,6 +24,7 @@ import me.ialistannen.spotifydownloaderjvm.glue.TrackDownloader
 import me.ialistannen.spotifydownloaderjvm.gui.MainApplication
 import me.ialistannen.spotifydownloaderjvm.gui.download.DownloadScreenController
 import me.ialistannen.spotifydownloaderjvm.gui.download.Downloader
+import me.ialistannen.spotifydownloaderjvm.gui.ffmpegdiscovery.FfmpegFinder
 import me.ialistannen.spotifydownloaderjvm.metadata.Mp3gicMetadataInjector
 import me.ialistannen.spotifydownloaderjvm.normalization.FfmpegNormalizer
 import me.ialistannen.spotifydownloaderjvm.searching.YoutubeTrackSearcher
@@ -35,6 +36,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.ForkJoinPool
 import kotlin.math.roundToInt
 
 
@@ -71,12 +73,27 @@ class MainScreenController {
     private fun initialize() {
         setupPlaylistUrl()
         setupDownloadButton()
-
-        ffmpegPath.textProperty().observeToPath { ffmpeg = it.toFile() }
-        ffprobePath.textProperty().observeToPath { ffprobe = it.toFile() }
+        setupFfmpegSettings()
 
         clientSecret.text = "***REMOVED***"
         clientId.text = "***REMOVED***"
+
+        parallelismSlider.max = ForkJoinPool.getCommonPoolParallelism().toDouble()
+    }
+
+    private fun setupFfmpegSettings() {
+        val ffmpegFinder = FfmpegFinder()
+        ffmpegFinder.findFfmpeg().subscribe(
+                { ffmpegPath.text = it.toAbsolutePath().toString() },
+                { it.printStackTrace() }
+        )
+        ffmpegFinder.findFfprobe().subscribe(
+                { ffprobePath.text = it.toAbsolutePath().toString() },
+                { it.printStackTrace() }
+        )
+
+        ffmpegPath.textProperty().observeToPath { ffmpeg = it.toFile() }
+        ffprobePath.textProperty().observeToPath { ffprobe = it.toFile() }
     }
 
     private fun ObservableValue<String>.observeToPath(action: (Path) -> Unit) {
