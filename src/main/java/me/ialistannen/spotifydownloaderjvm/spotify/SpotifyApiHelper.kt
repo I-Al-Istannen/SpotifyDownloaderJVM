@@ -29,6 +29,19 @@ fun <T> IRequest.toSingle(): Single<T> {
 }
 
 /**
+ * Checks if this string roughly follows this format.
+ * `https://open.spotify.com/user/x40fn74nzd798rvmpy6o5vue7/playlist/5oxZIYU1L9N1CczN0C4JkM`
+ * and optional garbage at the end.
+ *
+ * @return true if ti follows the format roughly
+ */
+fun String.isValidPlaylistLink(): Boolean {
+    val regex = Regex("user/(.+?)/playlist/(.+?)[^a-z0-9A-Z]")
+    return regex.find(this) != null
+}
+
+
+/**
  * Returns all tracks in a playlist.
  *
  * @param userId the id of the user

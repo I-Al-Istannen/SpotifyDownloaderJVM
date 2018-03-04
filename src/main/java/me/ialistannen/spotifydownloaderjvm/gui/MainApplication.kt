@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.layout.Pane
 import javafx.stage.Stage
+import me.ialistannen.spotifydownloaderjvm.spotify.SynchronizedSimpleDateFormat
 
 class MainApplication : Application() {
 
@@ -16,17 +17,10 @@ class MainApplication : Application() {
     override fun start(primaryStage: Stage) {
         stage = primaryStage
 
-//        val fxmlLoader = FXMLLoader(javaClass.getResource("/fxml/MainScreen.fxml"))
-//        val pane: Pane = fxmlLoader.load()
-//        val controller: MainScreenController = fxmlLoader.getController()
-//        controller.spotifyTrackFetcher = SpotifyTrackFetcher(
-//                createSpotifyApiFromClientCredentials(
-//                        "***REMOVED***",
-//                        "***REMOVED***"
-//                )
-//        )
-        val fxmlLoader = FXMLLoader(javaClass.getResource("/fxml/DownloadScreen.fxml"))
-        val pane = fxmlLoader.load<Pane>()
+        SynchronizedSimpleDateFormat.injectIntoSpotify()
+
+        val fxmlLoader = FXMLLoader(javaClass.getResource("/fxml/MainScreen.fxml"))
+        val pane: Pane = fxmlLoader.load()
 
         primaryStage.scene = Scene(pane)
 

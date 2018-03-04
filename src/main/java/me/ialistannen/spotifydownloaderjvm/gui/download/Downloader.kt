@@ -1,5 +1,6 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
 import io.reactivex.schedulers.Schedulers
 import javafx.beans.property.SimpleDoubleProperty
 import me.ialistannen.spotifydownloaderjvm.glue.TrackDownloader
@@ -26,6 +27,7 @@ class Downloader(
 
         spotifyTrackFetcher.getPlaylistNameFromLink(playlistLink)
                 .subscribeOn(Schedulers.io())
+                .observeOn(JavaFxScheduler.platform())
                 .subscribe(
                         { downloadScreenController.setPlaylistName(it) },
                         errorHandler
@@ -41,7 +43,9 @@ class Downloader(
                             SimpleDoubleProperty(-1.0)
                     )
                 }
-                .toList().subscribe(
+                .toList()
+                .observeOn(JavaFxScheduler.platform())
+                .subscribe(
                         {
                             downloadScreenController.setTracks(it)
                         },

@@ -66,20 +66,6 @@ class SpotifyTrackFetcher(
         val values = match.groupValues
         return getPlaylistName(values[1], values[2])
     }
-
-
-    /**
-     * Checks if the playlist link roughly follows this format.
-     * `https://open.spotify.com/user/x40fn74nzd798rvmpy6o5vue7/playlist/5oxZIYU1L9N1CczN0C4JkM`
-     * and optional garbage at the end.
-     *
-     * @param playlistLink the link of the playlist
-     * @return true if ti follows the format roughly
-     */
-    fun isValidLink(playlistLink: String): Boolean {
-        val regex = Regex("user/(.+?)/playlist/(.+?)[^a-z0-9A-Z]")
-        return regex.find(playlistLink) != null
-    }
 }
 
 fun main(args: Array<String>) {
