@@ -30,7 +30,7 @@ class TrackDownloader(
      * Downloads a single track.
      *
      * @param trackId the ID of the track
-     * @param targetFolder the dolder to download to
+     * @param targetFolder the folder to download to
      */
     fun downloadTrack(trackId: String, targetFolder: Path): Observable<DownloadProgress> {
         return spotifyMetadataFetcher.getTrackMetadata(trackId)

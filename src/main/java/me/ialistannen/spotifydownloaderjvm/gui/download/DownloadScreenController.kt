@@ -1,10 +1,10 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
-import javafx.beans.property.SimpleDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import me.ialistannen.spotifydownloaderjvm.gui.model.DownloadingTrack
 import me.ialistannen.spotifydownloaderjvm.gui.model.Status
+import kotlin.math.roundToInt
 
 class DownloadScreenController {
 
@@ -17,7 +17,6 @@ class DownloadScreenController {
     @FXML
     private lateinit var playlistName: Label
 
-    var parallelism: Int = 0
     lateinit var downloader: Downloader
 
     @FXML
@@ -44,35 +43,25 @@ class DownloadScreenController {
                             return
                         }
 
-                        text = item.toInt().toString()
+                        text = (item.toDouble() * 100).roundToInt().toString()
                     }
                 }
             })
         }
 
         table.columns.setAll(nameColumn, artistColumn, statusColumn, progressColumn)
-
-        setTracks(listOf(
-                DownloadingTrack.newInstance(
-                        Status.QUEUED, "Fiji Water", "Owl city", SimpleDoubleProperty(0.0)
-                ),
-                DownloadingTrack.newInstance(
-                        Status.QUEUED, "Montana", "Owl city", SimpleDoubleProperty(2.0)
-                ),
-                DownloadingTrack.newInstance(
-                        Status.DOWNLOADING, "Fireflies", "Owl city", SimpleDoubleProperty(20.0)
-                )
-        ))
     }
 
     @FXML
     fun onCancel() {
+        downloader.stopDownload()
         downloadButton.scene.window?.hide()
     }
 
     @FXML
     fun onDownload() {
         downloadButton.isDisable = true
+        downloader.startDownload(table.items)
     }
 
     /**

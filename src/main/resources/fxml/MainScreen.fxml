@@ -47,7 +47,7 @@
             <JFXSlider fx:id="parallelismSlider" blockIncrement="1.0" majorTickUnit="1.0" max="4.0"
               maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" min="1.0"
               minorTickCount="0" prefHeight="62.0" prefWidth="207.0" showTickLabels="true"
-              showTickMarks="true" snapToTicks="true"/>
+              showTickMarks="true" snapToTicks="true" value="1.0"/>
           </children>
         </VBox>
         <HBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">

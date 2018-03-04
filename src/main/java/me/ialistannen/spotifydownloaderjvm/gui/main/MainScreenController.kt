@@ -63,7 +63,7 @@ class MainScreenController {
     @FXML
     private lateinit var ffprobePath: JFXTextField
 
-    private var file: File? = null
+    private var outputFile: File? = null
     private var ffmpeg: File? = null
     private var ffprobe: File? = null
 
@@ -112,7 +112,7 @@ class MainScreenController {
 
     @FXML
     fun onDownload() {
-        if (file == null || ffmpeg == null || ffprobe == null) {
+        if (outputFile == null || ffmpeg == null || ffprobe == null) {
             val alert = Alert(Alert.AlertType.ERROR)
             alert.title = "Error, files not found"
             alert.headerText = "You need to set the output folder and the paths for ffmpeg"
@@ -141,10 +141,11 @@ class MainScreenController {
                         ),
                         Mp3gicMetadataInjector()
                 ),
-                SpotifyTrackFetcher(spotifyApi)
+                SpotifyTrackFetcher(spotifyApi),
+                outputFile!!.toPath(),
+                parallelism
         )
         downloader.passPlaylistTracks(playlistUrl, controller)
-        controller.parallelism = parallelism
         controller.downloader = downloader
 
         val newStage = Stage()
@@ -163,12 +164,12 @@ class MainScreenController {
 
         outputPath.text = file.name
 
-        this.file = file
+        this.outputFile = file
     }
 
     @FXML
     fun onPickFfmpegPath() {
-        pickFile("Pick the FFMPEG file to use")?.let {
+        pickFile("Pick the FFMPEG outputFile to use")?.let {
             ffmpeg = it
             ffmpegPath.text = it.absolutePath
         }
@@ -176,7 +177,7 @@ class MainScreenController {
 
     @FXML
     fun onPickFfprobePath() {
-        pickFile("Pick the FFPROBE file to use")?.let {
+        pickFile("Pick the FFPROBE outputFile to use")?.let {
             ffprobe = it
             ffprobePath.text = it.absolutePath
         }

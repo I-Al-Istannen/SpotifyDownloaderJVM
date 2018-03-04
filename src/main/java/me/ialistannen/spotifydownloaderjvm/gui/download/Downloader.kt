@@ -1,20 +1,33 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.internal.schedulers.ExecutorScheduler
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
+import io.reactivex.rxkotlin.addTo
 import io.reactivex.schedulers.Schedulers
 import javafx.beans.property.SimpleDoubleProperty
 import me.ialistannen.spotifydownloaderjvm.glue.TrackDownloader
 import me.ialistannen.spotifydownloaderjvm.gui.model.DownloadingTrack
 import me.ialistannen.spotifydownloaderjvm.gui.model.Status
 import me.ialistannen.spotifydownloaderjvm.spotify.SpotifyTrackFetcher
+import java.nio.file.Path
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
- * Downloads songs and talks with the GUI,
+ * Downloads songs and talks with the GUI.
+ *
+ * **Can not be reused, as it keeps internal state!**
  */
 class Downloader(
         private val trackDownloader: TrackDownloader,
-        private val spotifyTrackFetcher: SpotifyTrackFetcher
+        private val spotifyTrackFetcher: SpotifyTrackFetcher,
+        private val outputFolder: Path,
+        parallelism: Int
 ) {
+
+    private val executor: ExecutorService = Executors.newFixedThreadPool(parallelism)
+    private val disposable: CompositeDisposable = CompositeDisposable()
 
     /**
      * Passes the tracks and name of the playlist to the given [DownloadScreenController].
@@ -40,6 +53,7 @@ class Downloader(
                             Status.QUEUED,
                             it.name,
                             it.artists[0].name,
+                            it.id,
                             SimpleDoubleProperty(-1.0)
                     )
                 }
@@ -61,9 +75,37 @@ class Downloader(
      * Starts the download of the given tracks.
      *
      * @param tracks the tracks to download
-     * @param parallelism the parallelism level
      */
-    fun startDownload(tracks: Iterable<DownloadingTrack>, parallelism: Int) {
+    fun startDownload(tracks: Iterable<DownloadingTrack>) {
+        tracks.forEach { track ->
+            trackDownloader.downloadTrack(track.id.value, outputFolder)
+                    .subscribeOn(ExecutorScheduler(executor))
+                    .subscribe(
+                            {
+                                when (it) {
+                                    is TrackDownloader.DownloadProgress.Progress -> {
+                                        if (it.progress >= 0.5) {
+                                            track.status.set(Status.PROCESSING)
+                                        } else {
+                                            track.status.set(Status.DOWNLOADING)
+                                        }
+                                        track.progress.set(it.progress)
+                                    }
+                                }
+                            },
+                            { it.printStackTrace() },
+                            {
+                                track.status.set(Status.FINISHED)
+                            }
+                    ).addTo(disposable)
+        }
+    }
 
+    /**
+     * Stops all downloads.
+     */
+    fun stopDownload() {
+        disposable.dispose()
+        executor.shutdownNow()
     }
 }
