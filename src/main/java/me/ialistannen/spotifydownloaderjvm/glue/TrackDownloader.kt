@@ -32,7 +32,7 @@ class TrackDownloader(
      * @param trackId the ID of the track
      * @param targetFolder the dolder to download to
      */
-    fun downloadTrackTest(trackId: String, targetFolder: Path): Observable<DownloadProgress> {
+    fun downloadTrack(trackId: String, targetFolder: Path): Observable<DownloadProgress> {
         return spotifyMetadataFetcher.getTrackMetadata(trackId)
                 .map {
                     val url = trackUrlSearcher.findTrackUrl(it)
@@ -93,7 +93,7 @@ fun main(args: Array<String>) {
             Mp3gicMetadataInjector()
     )
 
-    trackDownloader.downloadTrackTest(
+    trackDownloader.downloadTrack(
             "48W1cLE8KD0n4SWtj3YLtz",
             Paths.get("/tmp")
     ).subscribe(
