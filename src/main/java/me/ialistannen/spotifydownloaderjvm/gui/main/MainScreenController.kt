@@ -36,7 +36,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.ForkJoinPool
 import kotlin.math.roundToInt
 
 
@@ -75,7 +74,7 @@ class MainScreenController {
         setupDownloadButton()
         setupFfmpegSettings()
 
-        parallelismSlider.max = ForkJoinPool.getCommonPoolParallelism().toDouble()
+        parallelismSlider.max = 4.0 // you do not want to be blocked by youtube, do you?
     }
 
     private fun setupFfmpegSettings() {

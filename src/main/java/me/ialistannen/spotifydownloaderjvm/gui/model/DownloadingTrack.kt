@@ -28,6 +28,9 @@ data class DownloadingTrack(
     }
 }
 
-enum class Status {
-    QUEUED, DOWNLOADING, PROCESSING, FINISHED
+enum class Status(val cssStyle: String) {
+    QUEUED(""),
+    DOWNLOADING("-fx-background-color: -fx-color-palette-400;"),
+    PROCESSING("-fx-background-color: -fx-color-palette-400;"),
+    FINISHED("")
 }

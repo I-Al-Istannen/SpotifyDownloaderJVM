@@ -36,8 +36,3 @@
   -jfx-label-float: true;
   -jfx-disable-animation: false
 }
-
-.table-view {
-  -fx-table-color: -fx-color-palette-600;
-  -fx-table-rippler-color: -fx-color-palette-700;
-}

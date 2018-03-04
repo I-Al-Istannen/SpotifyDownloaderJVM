@@ -2,6 +2,7 @@ package me.ialistannen.spotifydownloaderjvm.gui.download
 
 import javafx.fxml.FXML
 import javafx.scene.control.*
+import javafx.util.Callback
 import me.ialistannen.spotifydownloaderjvm.gui.model.DownloadingTrack
 import me.ialistannen.spotifydownloaderjvm.gui.model.Status
 import kotlin.math.roundToInt
@@ -29,7 +30,26 @@ class DownloadScreenController {
         }
         val statusColumn = TableColumn<DownloadingTrack, Status>("Status").apply {
             setCellValueFactory { it.value.status }
+            cellFactory = Callback { _ ->
+                object : TableCell<DownloadingTrack, Status>() {
+                    override fun updateItem(item: Status?, empty: Boolean) {
+                        super.updateItem(item, empty)
+
+                        if (item == null || empty) {
+                            graphic = null
+                            text = ""
+                            tableRow?.style = null
+                            return
+                        }
+
+                        text = item.name
+
+                        tableRow?.style = item.cssStyle
+                    }
+                }
+            }
         }
+
         val progressColumn = TableColumn<DownloadingTrack, Number>("Progress").apply {
             setCellValueFactory { it.value.progress }
             setCellFactory({ _ ->

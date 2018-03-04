@@ -26,7 +26,12 @@ class Downloader(
         parallelism: Int
 ) {
 
-    private val executor: ExecutorService = Executors.newFixedThreadPool(parallelism)
+    private val executor: ExecutorService = Executors.newFixedThreadPool(parallelism, {
+        val thread = Thread(it)
+        thread.isDaemon = true
+
+        thread
+    })
     private val disposable: CompositeDisposable = CompositeDisposable()
 
     /**

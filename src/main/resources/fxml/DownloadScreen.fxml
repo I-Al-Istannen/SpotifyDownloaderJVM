@@ -48,9 +48,10 @@
         </TableView>
         <ButtonBar GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
           <buttons>
-            <JFXButton fx:id="downloadButton" defaultButton="true" onAction="#onDownload"
-              text="Download"/>
-            <JFXButton cancelButton="true" onAction="#onCancel" text="Cancel"/>
+            <JFXButton fx:id="downloadButton" defaultButton="true"
+              maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+              onAction="#onDownload" styleClass="s" text="Download"/>
+            <JFXButton cancelButton="true" onAction="#onCancel" styleClass="s" text="Cancel"/>
           </buttons>
           <GridPane.margin>
             <Insets bottom="20.0" right="20.0" top="20.0"/>
