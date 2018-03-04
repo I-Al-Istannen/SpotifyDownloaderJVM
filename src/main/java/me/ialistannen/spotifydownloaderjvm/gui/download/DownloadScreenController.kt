@@ -1,7 +1,9 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
+import com.jfoenix.controls.JFXButton
 import javafx.fxml.FXML
 import javafx.scene.control.*
+import javafx.scene.text.Font
 import javafx.util.Callback
 import me.ialistannen.spotifydownloaderjvm.gui.model.DownloadingTrack
 import me.ialistannen.spotifydownloaderjvm.gui.model.Status
@@ -68,8 +70,41 @@ class DownloadScreenController {
                 }
             })
         }
+        val errorColumn = TableColumn<DownloadingTrack, String>("Error").apply {
+            setCellValueFactory { it.value.error }
+            setCellFactory({ _ ->
+                object : TableCell<DownloadingTrack, String>() {
+                    override fun updateItem(item: String?, empty: Boolean) {
+                        super.updateItem(item, empty)
 
-        table.columns.setAll(nameColumn, artistColumn, statusColumn, progressColumn)
+                        if (item == null || empty) {
+                            text = ""
+                            graphic = null
+                            return
+                        }
+
+                        if (item.isBlank()) {
+                            graphic = null
+                            return
+                        }
+
+                        graphic = JFXButton("Show").apply {
+                            setOnAction {
+                                val alert = Alert(Alert.AlertType.ERROR)
+                                alert.title = "Error message"
+                                alert.headerText = "An error occurred"
+                                alert.dialogPane.expandableContent = TextArea(item).apply {
+                                    font = Font.font("monospace", 13.0)
+                                }
+                                alert.show()
+                            }
+                        }
+                    }
+                }
+            })
+        }
+
+        table.columns.setAll(nameColumn, artistColumn, statusColumn, progressColumn, errorColumn)
     }
 
     @FXML

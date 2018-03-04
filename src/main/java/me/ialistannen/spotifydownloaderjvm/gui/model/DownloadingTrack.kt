@@ -1,9 +1,6 @@
 package me.ialistannen.spotifydownloaderjvm.gui.model
 
-import javafx.beans.property.DoubleProperty
-import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
+import javafx.beans.property.*
 import javafx.beans.value.ObservableValue
 
 data class DownloadingTrack(
@@ -11,7 +8,8 @@ data class DownloadingTrack(
         val title: ObservableValue<String>,
         val artist: ObservableValue<String>,
         val progress: DoubleProperty,
-        val id: ObservableValue<String>
+        val id: ObservableValue<String>,
+        val error: StringProperty
 ) {
     companion object {
 
@@ -22,7 +20,8 @@ data class DownloadingTrack(
                     SimpleStringProperty(title),
                     SimpleStringProperty(artist),
                     progress,
-                    SimpleStringProperty(id)
+                    SimpleStringProperty(id),
+                    SimpleStringProperty("")
             )
         }
     }
@@ -32,5 +31,7 @@ enum class Status(val cssStyle: String) {
     QUEUED(""),
     DOWNLOADING("-fx-background-color: -fx-color-palette-400;"),
     PROCESSING("-fx-background-color: -fx-color-palette-400;"),
+    ERROR("-fx-background-color: #6A1B9A;"),
+    NOT_FOUND("-fx-background-color: #4527A0;"),
     FINISHED("")
 }

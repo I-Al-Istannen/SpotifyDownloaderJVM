@@ -29,7 +29,7 @@ class TrackDownloader(
         return spotifyMetadataFetcher.getTrackMetadata(trackId)
                 .map {
                     val url = trackUrlSearcher.findTrackUrl(it)
-                            ?: throw DownloadException("No data found")
+                            ?: throw VideoNotFoundException("No data found")
                     url to it
                 }
                 .flatMap { pair ->
@@ -69,4 +69,4 @@ class TrackDownloader(
     }
 }
 
-class DownloadException(message: String) : RuntimeException(message)
+class VideoNotFoundException(message: String) : RuntimeException(message)
