@@ -2,19 +2,12 @@ package me.ialistannen.spotifydownloaderjvm.glue
 
 import io.reactivex.Observable
 import me.ialistannen.spotifydownloaderjvm.downloading.Downloader
-import me.ialistannen.spotifydownloaderjvm.downloading.YoutubeDlDownloader
 import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
 import me.ialistannen.spotifydownloaderjvm.metadata.MetadataInjector
-import me.ialistannen.spotifydownloaderjvm.metadata.Mp3gicMetadataInjector
-import me.ialistannen.spotifydownloaderjvm.normalization.FfmpegNormalizer
 import me.ialistannen.spotifydownloaderjvm.normalization.Normalizer
 import me.ialistannen.spotifydownloaderjvm.searching.TrackUrlSearcher
-import me.ialistannen.spotifydownloaderjvm.searching.YoutubeTrackSearcher
 import me.ialistannen.spotifydownloaderjvm.spotify.SpotifyMetadataFetcher
-import me.ialistannen.spotifydownloaderjvm.spotify.createSpotifyApiFromClientCredentials
 import java.nio.file.Path
-import java.nio.file.Paths
-import kotlin.math.roundToInt
 
 typealias Progress = TrackDownloader.DownloadProgress.Progress
 
@@ -77,41 +70,3 @@ class TrackDownloader(
 }
 
 class DownloadException(message: String) : RuntimeException(message)
-
-fun main(args: Array<String>) {
-    val trackDownloader = TrackDownloader(
-            SpotifyMetadataFetcher(createSpotifyApiFromClientCredentials(
-                    "***REMOVED***",
-                    "***REMOVED***"
-            )),
-            YoutubeTrackSearcher(),
-            YoutubeDlDownloader(),
-            FfmpegNormalizer(
-                    Paths.get("/bin/ffmpeg"),
-                    Paths.get("/bin/ffprobe")
-            ),
-            Mp3gicMetadataInjector()
-    )
-
-    trackDownloader.downloadTrack(
-            "48W1cLE8KD0n4SWtj3YLtz",
-            Paths.get("/tmp")
-    ).subscribe(
-            {
-                when (it) {
-                    is Progress -> {
-                        println("Currently at: ${(it.progress * 100).roundToInt()}")
-                    }
-                    is TrackDownloader.DownloadProgress.DownloadMetadata -> {
-                        println("Fetching for song: ${it.metadata}")
-                    }
-                }
-            },
-            {
-                it.printStackTrace()
-            },
-            {
-                println("Done!")
-            }
-    )
-}

@@ -3,7 +3,6 @@ package me.ialistannen.spotifydownloaderjvm.spotify
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.model_objects.specification.Track
 import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
 
 class SpotifyMetadataFetcher(
@@ -41,21 +40,4 @@ class SpotifyMetadataFetcher(
                     )
                 }
     }
-}
-
-fun main(args: Array<String>) {
-    val spotifyApi = SpotifyApi.builder()
-            .setClientId("***REMOVED***")
-            .setClientSecret("***REMOVED***")
-            .build()
-    val clientCredentials = spotifyApi.clientCredentials().build().execute()
-    spotifyApi.accessToken = clientCredentials.accessToken
-
-    val metadataFetcher = SpotifyMetadataFetcher(spotifyApi)
-
-    metadataFetcher.getTrackMetadata("7eYCwwABFO4lXV93PwpLWK")
-            .subscribeOn(Schedulers.io())
-            .subscribe {
-                println(it)
-            }
 }

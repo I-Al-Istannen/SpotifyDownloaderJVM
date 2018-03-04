@@ -67,22 +67,3 @@ class SpotifyTrackFetcher(
         return getPlaylistName(values[1], values[2])
     }
 }
-
-fun main(args: Array<String>) {
-    val spotifyApi = SpotifyApi.builder()
-            .setClientId("***REMOVED***")
-            .setClientSecret("***REMOVED***")
-            .build()
-    val clientCredentials = spotifyApi.clientCredentials().build().execute()
-    spotifyApi.accessToken = clientCredentials.accessToken
-
-    val trackFetcher = SpotifyTrackFetcher(spotifyApi)
-
-    trackFetcher.getPlaylistTracks("i_al_istannen", "4aotmA6b398BWSYDvou6tv").subscribe {
-        println("${it.addedAt} | ${it.track.name} - ${it.track.album.name} (${it.track.album.artists.map { it.name }})")
-    }
-    println()
-    trackFetcher.getPlaylistTracksFromLink("https://open.spotify.com/user/i_al_istannen/playlist/4aotmA6b398BWSYDvou6tv?si=0WEYDpwASJyVZ7M31bq0Xg").subscribe {
-        println("${it.addedAt} | ${it.track.name} - ${it.track.album.name} (${it.track.album.artists.map { it.name }})")
-    }
-}
