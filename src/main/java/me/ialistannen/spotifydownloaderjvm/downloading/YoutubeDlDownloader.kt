@@ -20,6 +20,7 @@ class YoutubeDlDownloader : Downloader {
                 setOption("extract-audio")
                 setOption("audio-format", "mp3")
                 setOption("output", makeOutputPath(path))
+                directory = getCurrentDirectory()
             }
 
             try {
@@ -43,6 +44,12 @@ class YoutubeDlDownloader : Downloader {
             }
         }
     }
+
+    private fun getCurrentDirectory() =
+            Paths.get(javaClass.protectionDomain.codeSource.location.toURI())
+                    .parent
+                    .toAbsolutePath()
+                    .toString()
 
     private fun makeOutputPath(path: Path): String {
         val pathString = path.toAbsolutePath().toString()

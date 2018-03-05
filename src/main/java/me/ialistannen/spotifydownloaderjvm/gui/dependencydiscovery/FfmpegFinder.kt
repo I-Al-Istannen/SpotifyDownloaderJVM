@@ -1,4 +1,4 @@
-package me.ialistannen.spotifydownloaderjvm.gui.ffmpegdiscovery
+package me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery
 
 import io.reactivex.Maybe
 import java.io.IOException

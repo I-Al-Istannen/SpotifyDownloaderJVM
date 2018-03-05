@@ -22,9 +22,9 @@ import javafx.stage.Stage
 import me.ialistannen.spotifydownloaderjvm.downloading.YoutubeDlDownloader
 import me.ialistannen.spotifydownloaderjvm.glue.TrackDownloader
 import me.ialistannen.spotifydownloaderjvm.gui.MainApplication
+import me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery.FfmpegFinder
 import me.ialistannen.spotifydownloaderjvm.gui.download.DownloadScreenController
 import me.ialistannen.spotifydownloaderjvm.gui.download.Downloader
-import me.ialistannen.spotifydownloaderjvm.gui.ffmpegdiscovery.FfmpegFinder
 import me.ialistannen.spotifydownloaderjvm.metadata.Mp3gicMetadataInjector
 import me.ialistannen.spotifydownloaderjvm.normalization.FfmpegNormalizer
 import me.ialistannen.spotifydownloaderjvm.searching.YoutubeTrackSearcher
