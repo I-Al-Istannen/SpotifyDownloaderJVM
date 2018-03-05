@@ -6,9 +6,8 @@ import com.sapher.youtubedl.YoutubeDLRequest
 import io.reactivex.Observable
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.math.roundToInt
 
-class YoutubeDlDownloader : Downloader {
+class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
 
     override fun canDownloader(url: String): Boolean {
         return "youtube" in url
@@ -20,6 +19,7 @@ class YoutubeDlDownloader : Downloader {
                 setOption("extract-audio")
                 setOption("audio-format", "mp3")
                 setOption("output", makeOutputPath(path))
+                setOption("ffmpeg-location", ffmpegDirectory.toAbsolutePath().toString())
                 directory = getCurrentDirectory()
             }
 
@@ -58,14 +58,4 @@ class YoutubeDlDownloader : Downloader {
         return "$pathString.%(ext)s"
     }
 
-}
-
-fun main(args: Array<String>) {
-    val youtubeDlDownloader = YoutubeDlDownloader()
-    youtubeDlDownloader.download("" +
-            "https://www.youtube.com/watch?v=DYRtvMIWXzE",
-            Paths.get("/tmp/hm.mp3")
-    ).subscribe {
-        println((it * 100).roundToInt())
-    }
 }

@@ -166,7 +166,7 @@ class MainScreenController {
                 TrackDownloader(
                         SpotifyMetadataFetcher(spotifyApi),
                         YoutubeTrackSearcher(),
-                        YoutubeDlDownloader(),
+                        YoutubeDlDownloader(ffmpeg!!.toPath().parent),
                         FfmpegNormalizer(
                                 ffmpeg!!.toPath(), ffprobe!!.toPath()
                         ),
