@@ -1,6 +1,7 @@
 package me.ialistannen.spotifydownloaderjvm.gui
 
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
+import io.reactivex.schedulers.Schedulers
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.fxml.FXMLLoader
@@ -38,32 +39,39 @@ class MainApplication : Application() {
         if ("client_secret" in parameters.named) {
             controller.setClientSecret(parameters.named["client_secret"]!!)
         }
+        
+        
+        primaryStage.scene = Scene(pane)
+
+        primaryStage.sizeToScene()
+        primaryStage.centerOnScreen()
+        primaryStage.show()
 
         FfmpegYoutubeDlDownloader().apply {
             needsToDownloadDependencies().subscribe { needsDownload ->
                 if (needsDownload) {
-                    if ("win" !in System.getProperty("os.name")) {
+                    if ("win" !in System.getProperty("os.name").toLowerCase()) {
                         val alert = Alert(Alert.AlertType.ERROR)
                         alert.title = "Dependency missing"
                         alert.headerText = "Please install all dependencies and restart the" +
                                 " application"
                         alert.showAndWait()
                     } else {
+                        val alert = Alert(Alert.AlertType.ERROR)
+                        alert.title = "Dependency missing"
+                        alert.headerText = "I will now try to install the dependencies, do not" +
+                                " close the application until I say so."
+                        alert.show()
                         downloadDependencies(this)
                     }
                 }
             }
         }
-
-        primaryStage.scene = Scene(pane)
-
-        primaryStage.sizeToScene()
-        primaryStage.centerOnScreen()
-        primaryStage.show()
     }
 
     private fun downloadDependencies(downloader: FfmpegYoutubeDlDownloader) {
         downloader.download(getInitialFolder(MainApplication::class.java))
+                .subscribeOn(Schedulers.io())
                 .observeOn(JavaFxScheduler.platform())
                 .subscribe(
                         { _ ->

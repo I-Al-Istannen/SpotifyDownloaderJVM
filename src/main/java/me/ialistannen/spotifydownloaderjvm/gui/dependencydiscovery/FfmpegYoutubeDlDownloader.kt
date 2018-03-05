@@ -90,16 +90,16 @@ class FfmpegYoutubeDlDownloader {
     fun needsToDownloadDependencies(): Single<Boolean> {
         val initialFolder = getInitialFolder(FfmpegYoutubeDlDownloader::class.java)
         return findExecutable("ffmpeg", initialFolder)
-                .map { true }
-                .toSingle(false)
+                .map { false }
+                .toSingle(true)
                 .flatMap { foundFfprobe ->
                     findExecutable("ffprobe", initialFolder)
                             .map { foundFfprobe }
-                            .toSingle(false)
+                            .toSingle(true)
                 }.flatMap { foundOthers ->
-                    findExecutable("youtubedl", initialFolder)
+                    findExecutable("youtube-dl", initialFolder)
                             .map { foundOthers }
-                            .toSingle(false)
+                            .toSingle(true)
                 }
     }
 }
