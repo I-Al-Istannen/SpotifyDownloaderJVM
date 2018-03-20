@@ -15,7 +15,6 @@ import me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery.FfmpegYoutube
 import me.ialistannen.spotifydownloaderjvm.gui.main.MainScreenController
 import me.ialistannen.spotifydownloaderjvm.gui.util.getInitialFolder
 import me.ialistannen.spotifydownloaderjvm.gui.util.getStackTraceString
-import me.ialistannen.spotifydownloaderjvm.spotify.SynchronizedSimpleDateFormat
 
 class MainApplication : Application() {
 
@@ -26,8 +25,6 @@ class MainApplication : Application() {
 
     override fun start(primaryStage: Stage) {
         stage = primaryStage
-
-        SynchronizedSimpleDateFormat.injectIntoSpotify()
 
         val fxmlLoader = FXMLLoader(javaClass.getResource("/fxml/MainScreen.fxml"))
         val pane: Pane = fxmlLoader.load()

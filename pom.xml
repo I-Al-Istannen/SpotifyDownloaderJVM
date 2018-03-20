@@ -120,9 +120,9 @@
 
     <!--SPOTIFY-->
     <dependency>
-      <groupId>se.michaelthelin.spotify</groupId>
+      <groupId>com.github.thelinmichael</groupId>
       <artifactId>spotify-web-api-java</artifactId>
-      <version>2.0.1</version>
+      <version>1c9a57bc01</version>
     </dependency>
 
     <!--YOUTUBE - SEARCH-->
