@@ -35,15 +35,10 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
                 .filterIsInstance(StreamInfoItem::class.java)
                 .filter { it.stream_type == StreamType.VIDEO_STREAM }
 
-        val filteredForTrack = results
-                .filter { trackTitle in it.name.sanitize() }
-                .filter { trackArtistName in it.name.sanitize() }
-                .sortedByDescending { it.viewCount }
 
-        val vevoChannelUpload = results.find { "VEVO" in it.uploaderName }
-        if (vevoChannelUpload != null) {
-            return vevoChannelUpload.url
-        }
+        val filteredForTrack = results
+                .filterNot { "cover" in it.name.sanitize() }
+                .filterNot { "karaoke" in it.name.sanitize() }
 
         // TODO: Punish "Live" videos?
 
@@ -68,23 +63,4 @@ private class SimpleDownloader : Downloader {
     }
 
     override fun download(siteUrl: String): String = download(siteUrl, emptyMap())
-}
-
-fun main(args: Array<String>) {
-    val trackSearcher = YoutubeTrackSearcher()
-
-    println(trackSearcher.findTrackUrl(
-            Metadata(
-                    title = "Chicago",
-//                    title = "Fiji Water",
-                    album = "Reel 2",
-                    artists = listOf("Clueso"),
-//                    artists = listOf("Owl City"),
-                    genre = listOf("Pop", "Electronic"),
-                    albumArtUrl = "https://i.scdn.co/image/0d1ee0bdb67f225c437efd8e152655e56575d2dc",
-                    releaseDate = "01.12.2017",
-                    trackNumber = 2,
-                    totalTrackNumber = 3
-            )
-    ))
 }
