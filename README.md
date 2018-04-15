@@ -1,6 +1,14 @@
 ## About
 This is a small toy project to look up a spotify playlist on youtube and download that audio.
 
+## Screenshots
+
+### Main UI
+![Main UI](images/Main_Screen.png)
+
+### Download UI
+![Download](images/Download.gif)
+
 ## Dependencies
 * RxJava (Reactive extensions for java)
 * RxKotlin (Reactive extensions for kotlin)
