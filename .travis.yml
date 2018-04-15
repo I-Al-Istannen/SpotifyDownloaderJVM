@@ -1,1 +1,9 @@
 language: java
+deploy:
+  provider: releases
+  api_key:
+    secure: fbW+ZYcjqBOQrzW2bDb7c+MyL+HfYDhQg5OrCVEn2CsSogGvJ6inkaTKRPm4L1XZqWIGRgK9bS623WTh341gQY7sHd6WnDTEYASyHogyongpdGzCdhNxAcXDlR1+R4E1BMpbCFj3rfMpP6ExS/4gR/Co4dMvBH3lmPCbTS9ZjqvytxrWwK3OOqEQpBho9XJSTtDZPsIG1AhvLRNLO1E5kKm7KhXFgDDvwxFQ7UEP0H4tkZrmNyBAYF1c2ydHCQjT7KauFQs9hJB1yIB3exlRZismgrQRxzIaE8+qwpgwy5cR2NiKTwRKjULMPEjnjlTdyUYkhxQrBeNGH9SP1icbITA0Wkf/8az+cA2QhFXWZZ0XnhWp6kr00645tbyZEZ0qPeuJsfLjQxWg/a65LwAfUf+kKZ4Ov/7TEcLTGRo+f51cWtt43sEwylgtBPDK+nmlTv6C1/Ae0KNve+pALjPpC6epKftSwxj779UAfsLA/pdefYuTB/0P1fAtwYq4x2pTNOfhypRheFR3cdhMmJFpmCmXQLS1Un+yZW3vt3cv3+JlOLST0RjZQuBS295/v2Y5bAKimkIbx6Af3f4g6ZBElKhTx04P717IueexwSoAlaVove0Q17YNhD0vQsFRtI2/6Mf/AkbfuvOKSyqY1qU2PvJ4ZV8CuVNkVu1kjiQTWws=
+  file: target/SpotifyDownloaderJVM.jar
+  skip_cleanup: true
+  on:
+    tags: true
