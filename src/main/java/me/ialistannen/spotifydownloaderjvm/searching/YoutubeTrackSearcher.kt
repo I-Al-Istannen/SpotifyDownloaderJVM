@@ -3,8 +3,10 @@ package me.ialistannen.spotifydownloaderjvm.searching
 import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
 import org.schabi.newpipe.extractor.Downloader
 import org.schabi.newpipe.extractor.NewPipe
-import org.schabi.newpipe.extractor.search.SearchEngine
+import org.schabi.newpipe.extractor.ServiceList
+import org.schabi.newpipe.extractor.search.SearchInfo
 import org.schabi.newpipe.extractor.services.youtube.YoutubeService
+import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.stream.StreamType
 import java.net.HttpURLConnection
@@ -18,22 +20,30 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
         if (NewPipe.getDownloader() == null) {
             NewPipe.init(SimpleDownloader())
         }
-        youtubeService = YoutubeService(1, "Youtube")
+        youtubeService = ServiceList.YouTube
     }
 
     override fun findTrackUrl(metadata: Metadata): String? {
         val trackArtistName = metadata.artists[0].sanitize()
         val trackTitle = metadata.title.sanitize()
 
-        val search = youtubeService.searchEngine.search(
-                "$trackTitle - $trackArtistName",
-                0,
-                "de",
-                SearchEngine.Filter.STREAM
+        val search = SearchInfo.getInfo(
+                youtubeService,
+                youtubeService.searchQHFactory.fromQuery(
+                        "$trackTitle - $trackArtistName",
+                        listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), ""
+                ),
+                "de"
         )
-        val results = search.searchResult.resultList
+//        val search = youtubeService.searchEngine.search(
+//                "$trackTitle - $trackArtistName",
+//                0,
+//                "de",
+//                SearchEngine.Filter.STREAM
+//        )
+        val results = search.relatedItems
                 .filterIsInstance(StreamInfoItem::class.java)
-                .filter { it.stream_type == StreamType.VIDEO_STREAM }
+                .filter { it.streamType == StreamType.VIDEO_STREAM }
 
 
         val filteredForTrack = results

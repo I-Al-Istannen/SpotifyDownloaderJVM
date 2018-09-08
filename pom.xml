@@ -9,7 +9,7 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <kotlin.version>1.2.40</kotlin.version>
+    <kotlin.version>1.2.61</kotlin.version>
   </properties>
 
   <build>
@@ -41,7 +41,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.1</version>
         <configuration>
           <finalName>SpotifyDownloaderJVM</finalName>
           <transformers>
@@ -91,12 +91,12 @@
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
-      <version>2.1.8</version>
+      <version>2.2.0</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxkotlin</artifactId>
-      <version>2.2.0</version>
+      <version>2.3.0</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
@@ -123,21 +123,21 @@
     <dependency>
       <groupId>com.github.thelinmichael</groupId>
       <artifactId>spotify-web-api-java</artifactId>
-      <version>1c9a57bc01</version>
+      <version>157f57a2be</version>
     </dependency>
 
     <!--YOUTUBE - SEARCH-->
     <dependency>
       <groupId>com.github.TeamNewPipe</groupId>
       <artifactId>NewPipeExtractor</artifactId>
-      <version>v0.11.5</version>
+      <version>66c3c3f452</version>
     </dependency>
 
     <!--JFOENIX-->
     <dependency>
       <groupId>com.jfoenix</groupId>
       <artifactId>jfoenix</artifactId>
-      <version>8.0.1</version>
+      <version>8.0.7</version>
     </dependency>
   </dependencies>
 

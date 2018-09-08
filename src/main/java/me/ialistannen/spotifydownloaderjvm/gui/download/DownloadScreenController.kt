@@ -54,7 +54,7 @@ class DownloadScreenController {
 
         val progressColumn = TableColumn<DownloadingTrack, Number>("Progress").apply {
             setCellValueFactory { it.value.progress }
-            setCellFactory({ _ ->
+            setCellFactory { _ ->
                 object : TableCell<DownloadingTrack, Number>() {
                     override fun updateItem(item: Number?, empty: Boolean) {
                         super.updateItem(item, empty)
@@ -68,11 +68,11 @@ class DownloadScreenController {
                         text = (item.toDouble() * 100).roundToInt().toString()
                     }
                 }
-            })
+            }
         }
         val errorColumn = TableColumn<DownloadingTrack, String>("Error").apply {
             setCellValueFactory { it.value.error }
-            setCellFactory({ _ ->
+            setCellFactory { _ ->
                 object : TableCell<DownloadingTrack, String>() {
                     override fun updateItem(item: String?, empty: Boolean) {
                         super.updateItem(item, empty)
@@ -101,7 +101,7 @@ class DownloadScreenController {
                         }
                     }
                 }
-            })
+            }
         }
 
         table.columns.setAll(nameColumn, artistColumn, statusColumn, progressColumn, errorColumn)

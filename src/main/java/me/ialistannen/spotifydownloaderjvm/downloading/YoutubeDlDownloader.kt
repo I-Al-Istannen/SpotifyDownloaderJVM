@@ -24,11 +24,11 @@ class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
             }
 
             try {
-                val dlResponse = YoutubeDL.execute(dlRequest, { progress, _ ->
+                val dlResponse = YoutubeDL.execute(dlRequest) { progress, _ ->
                     if (!it.isDisposed) {
                         it.onNext(progress.toDouble() / 100)
                     }
-                })
+                }
 
                 if (dlResponse.exitCode != 0) {
                     it.onError(YoutubeDLException("Non-zero exit code: '${dlResponse.exitCode}'"))
