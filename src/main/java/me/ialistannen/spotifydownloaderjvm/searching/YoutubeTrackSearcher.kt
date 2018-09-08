@@ -35,12 +35,6 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
                 ),
                 "de"
         )
-//        val search = youtubeService.searchEngine.search(
-//                "$trackTitle - $trackArtistName",
-//                0,
-//                "de",
-//                SearchEngine.Filter.STREAM
-//        )
         val results = search.relatedItems
                 .filterIsInstance(StreamInfoItem::class.java)
                 .filter { it.streamType == StreamType.VIDEO_STREAM }
