@@ -86,7 +86,7 @@ class Downloader(
     fun startDownload(tracks: Iterable<DownloadingTrack>) {
         tracks.forEach { track ->
             trackDownloader.downloadTrack(track.id.value, outputFolder)
-                    .subscribeOn(ExecutorScheduler(executor))
+                .subscribeOn(ExecutorScheduler(executor, false))
                     .subscribe(
                             {
                                 when (it) {

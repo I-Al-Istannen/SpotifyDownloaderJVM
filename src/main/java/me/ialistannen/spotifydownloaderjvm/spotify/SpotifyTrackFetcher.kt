@@ -6,22 +6,21 @@ import com.wrapper.spotify.model_objects.specification.PlaylistTrack
 import io.reactivex.Observable
 
 class SpotifyTrackFetcher(
-        private val spotifyApi: SpotifyApi
+    private val spotifyApi: SpotifyApi
 ) {
 
     /**
      * Returns all tracks in the given playlist.
      *
      * @param playlistId the id of the playlist
-     * @param userId the id of the user
      */
-    fun getPlaylistTracks(userId: String, playlistId: String): Observable<PlaylistTrack> {
-        return spotifyApi.getAllTracksFromPlaylist(userId, playlistId)
+    fun getPlaylistTracks(playlistId: String): Observable<PlaylistTrack> {
+        return spotifyApi.getAllTracksFromPlaylist(playlistId)
     }
 
     /**
      * Returns the tracks of a playlist from its link in the following format:
-     * `https://open.spotify.com/user/x40fn74nzd798rvmpy6o5vue7/playlist/5oxZIYU1L9N1CczN0C4JkM`
+     * `https://open.spotify.com/playlist/playlist id?si=whatever`
      * and optional garbage at the end.
      *
      * @param playlistLink the link of the playlist
@@ -30,29 +29,32 @@ class SpotifyTrackFetcher(
      * @see [getPlaylistTracks]
      */
     fun getPlaylistTracksFromLink(playlistLink: String): Observable<PlaylistTrack> {
-        val regex = Regex("user/(.+?)/playlist/(.+?)[^a-z0-9A-Z]")
+        return getPlaylistTracks(getPlaylistIdFromLink(playlistLink))
+    }
+
+    private fun getPlaylistIdFromLink(playlistLink: String): String {
+        val regex = Regex("/playlist/(.+?)(\\?|&|\$).*")
         val match = regex.find(playlistLink) ?: throw IllegalArgumentException("Invalid link")
         val values = match.groupValues
-        return getPlaylistTracks(values[1], values[2])
+        return values[1]
     }
 
     /**
      * Returns the name of the playlist.
      *
      * @param playlistId the id of the playlist
-     * @param userId the user id
      */
-    fun getPlaylistName(userId: String, playlistId: String): Observable<String> {
-        return spotifyApi.getPlaylist(userId, playlistId).build().toSingle<Playlist>()
-                .toObservable()
-                .map {
-                    it.name
-                }
+    fun getPlaylistName(playlistId: String): Observable<String> {
+        return spotifyApi.getPlaylist(playlistId).build().toSingle<Playlist>()
+            .toObservable()
+            .map {
+                it.name
+            }
     }
 
     /**
      * Returns the name of a playlist from its link in the following format:
-     * `https://open.spotify.com/user/x40fn74nzd798rvmpy6o5vue7/playlist/5oxZIYU1L9N1CczN0C4JkM`
+     * `https://open.spotify.com/playlist/playlist id?si=whatever`
      * and optional garbage at the end.
      *
      * @param playlistLink the link of the playlist
@@ -61,9 +63,6 @@ class SpotifyTrackFetcher(
      * @see [getPlaylistName]
      */
     fun getPlaylistNameFromLink(playlistLink: String): Observable<String> {
-        val regex = Regex("user/(.+?)/playlist/(.+?)[^a-z0-9A-Z]")
-        val match = regex.find(playlistLink) ?: throw IllegalArgumentException("Invalid link")
-        val values = match.groupValues
-        return getPlaylistName(values[1], values[2])
+        return getPlaylistName(getPlaylistIdFromLink(playlistLink))
     }
 }

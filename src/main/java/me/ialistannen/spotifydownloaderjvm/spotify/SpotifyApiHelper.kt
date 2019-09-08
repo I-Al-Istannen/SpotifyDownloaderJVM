@@ -30,13 +30,13 @@ fun <T> IRequest.toSingle(): Single<T> {
 
 /**
  * Checks if this string roughly follows this format.
- * `https://open.spotify.com/user/x40fn74nzd798rvmpy6o5vue7/playlist/5oxZIYU1L9N1CczN0C4JkM`
+ * `https://open.spotify.com/playlist/playlist id?si=whatever`
  * and optional garbage at the end.
  *
  * @return true if ti follows the format roughly
  */
 fun String.isValidPlaylistLink(): Boolean {
-    val regex = Regex("user/(.+?)/playlist/(.+?)[^a-z0-9A-Z]")
+    val regex = Regex("/playlist/(.+?)[^a-z0-9A-Z]")
     return regex.find(this) != null
 }
 
@@ -44,18 +44,17 @@ fun String.isValidPlaylistLink(): Boolean {
 /**
  * Returns all tracks in a playlist.
  *
- * @param userId the id of the user
  * @param playlistId the id of the playlist
  * @return all tracks in this playlist
  */
-fun SpotifyApi.getAllTracksFromPlaylist(userId: String, playlistId: String): Observable<PlaylistTrack> {
+fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<PlaylistTrack> {
     return Observable.create { observable ->
         var currentOffset = 1
 
         while (true) {
-            val tracksRequest = getPlaylistsTracks(userId, playlistId)
-                    .offset(currentOffset - 1)
-                    .build()
+            val tracksRequest = getPlaylistsTracks(playlistId)
+                .offset(currentOffset - 1)
+                .build()
             val paging = tracksRequest.execute()
 
             if (!observable.isDisposed) {
