@@ -131,7 +131,7 @@
     <dependency>
       <groupId>com.github.TeamNewPipe</groupId>
       <artifactId>NewPipeExtractor</artifactId>
-      <version>v0.17.1</version>
+      <version>v0.17.3</version>
     </dependency>
 
     <!--JFOENIX-->
