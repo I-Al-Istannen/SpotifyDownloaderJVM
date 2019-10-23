@@ -1,6 +1,7 @@
 package me.ialistannen.spotifydownloaderjvm.searching
 
 import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
+import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
@@ -62,7 +63,16 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
 
 private class SimpleDownloader : Downloader {
 
-    private val client: CloseableHttpClient = HttpClientBuilder.create().build()
+    private val client: CloseableHttpClient
+        get() = HttpClientBuilder.create()
+            .setDefaultRequestConfig(
+                RequestConfig.copy(RequestConfig.DEFAULT).apply {
+                    setConnectTimeout(10_000)
+                    setSocketTimeout(10_000)
+                    setConnectionRequestTimeout(5_000)
+                }.build()
+            )
+            .build()
 
     override fun get(siteUrl: String, request: DownloadRequest): DownloadResponse {
         return executeToResponse(HttpGet(siteUrl), request)
@@ -107,6 +117,11 @@ private class SimpleDownloader : Downloader {
     ): CloseableHttpResponse {
         downloadRequest.requestHeaders.forEach {
             request.addHeader(it.key, it.value.joinToString { "," })
+        }
+
+        // Not needed, but let's throw it in
+        if ("User-Agent" !in downloadRequest.requestHeaders) {
+            request.addHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64)")
         }
 
         val localContext = BasicHttpContext()
