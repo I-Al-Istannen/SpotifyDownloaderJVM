@@ -54,7 +54,8 @@ class Downloader(
                 )
 
         spotifyTrackFetcher.getPlaylistTracksFromLink(playlistLink)
-                .map { it.track }
+            .map { it.track }
+            .filter { it.id != null }
                 .map {
                     DownloadingTrack.newInstance(
                             Status.QUEUED,
