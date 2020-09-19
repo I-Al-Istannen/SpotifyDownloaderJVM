@@ -24,8 +24,8 @@ fun createSpotifyApiFromClientCredentials(clientSecret: String, clientId: String
 /**
  * Converts an [IRequest] to a [Single].
  */
-fun <T> IRequest.toSingle(): Single<T> {
-    return Single.fromCallable { this.execute() as T }
+fun <T> IRequest<T>.toSingle(): Single<T> {
+    return Single.fromCallable { this.execute() }
 }
 
 /**
@@ -52,7 +52,7 @@ fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<Playlist
         var currentOffset = 1
 
         while (true) {
-            val tracksRequest = getPlaylistsTracks(playlistId)
+            val tracksRequest = getPlaylistsItems(playlistId)
                 .offset(currentOffset - 1)
                 .build()
             val paging = tracksRequest.execute()

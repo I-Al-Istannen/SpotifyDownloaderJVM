@@ -1,5 +1,7 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
+import com.wrapper.spotify.enums.ModelObjectType
+import com.wrapper.spotify.model_objects.specification.Track
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.internal.schedulers.ExecutorScheduler
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
@@ -55,6 +57,8 @@ class Downloader(
 
         spotifyTrackFetcher.getPlaylistTracksFromLink(playlistLink)
             .map { it.track }
+            .filter { it.type == ModelObjectType.TRACK }
+            .map { it as Track }
             .filter { it.id != null }
                 .map {
                     DownloadingTrack.newInstance(
