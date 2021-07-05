@@ -1,33 +1,34 @@
 package me.ialistannen.spotifydownloaderjvm.searching
 
 import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
-import org.apache.http.client.config.RequestConfig
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.protocol.HttpClientContext
-import org.apache.http.impl.client.BasicCookieStore
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.http.protocol.BasicHttpContext
+import okhttp3.ConnectionPool
+import okhttp3.OkHttpClient
+import okhttp3.Request.Builder
+import okhttp3.RequestBody
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import org.schabi.newpipe.extractor.localization.Localization
 import org.schabi.newpipe.extractor.search.SearchInfo
 import org.schabi.newpipe.extractor.services.youtube.YoutubeService
-import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.stream.StreamType
+import java.util.concurrent.TimeUnit
+
 
 class YoutubeTrackSearcher : TrackUrlSearcher {
 
     private val youtubeService: YoutubeService
+    private val downloader: DownloaderTestImpl = DownloaderTestImpl(
+        OkHttpClient.Builder().connectionPool(ConnectionPool(2, 5, TimeUnit.SECONDS))
+    )
 
     init {
         if (NewPipe.getDownloader() == null) {
-            NewPipe.init(SimpleDownloader(), Localization("DE", "de"))
+            NewPipe.init(downloader, Localization("DE", "de"))
         }
         youtubeService = ServiceList.YouTube
     }
@@ -39,14 +40,13 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
         val search = SearchInfo.getInfo(
             youtubeService,
             youtubeService.searchQHFactory.fromQuery(
-                "$trackTitle - $trackArtistName",
-                listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), ""
+                "$trackTitle - $trackArtistName"
             )
         )
+
         val results = search.relatedItems
             .filterIsInstance(StreamInfoItem::class.java)
             .filter { it.streamType == StreamType.VIDEO_STREAM }
-
 
         val filteredForTrack = results
             .filterNot { "cover" in it.name.sanitize() }
@@ -62,51 +62,65 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
     }
 }
 
-private class SimpleDownloader : Downloader() {
+private const val USER_AGENT =
+    "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0"
 
-    private val client: CloseableHttpClient
-        get() = HttpClientBuilder.create()
-            .setDefaultRequestConfig(
-                RequestConfig.copy(RequestConfig.DEFAULT).apply {
-                    setConnectTimeout(10_000)
-                    setSocketTimeout(10_000)
-                    setConnectionRequestTimeout(5_000)
-                }.build()
-            )
-            .build()
+class DownloaderTestImpl(builder: OkHttpClient.Builder) : Downloader() {
+    private val client: OkHttpClient = builder.readTimeout(30, TimeUnit.SECONDS).build()
 
     override fun execute(request: Request): Response {
-        val response = executeRequest(request)
+        val okhttpRequest = buildRequest(request)
+        val response: okhttp3.Response = client.newCall(okhttpRequest).execute()
 
+        if (response.code() == 429) {
+            response.close()
+            throw ReCaptchaException("reCaptcha Challenge requested", request.url())
+        }
+
+        val body = response.body()?.string()
+        val latestUrl: String = response.request().url().toString()
         return Response(
-            response.statusLine.statusCode,
-            response.statusLine.reasonPhrase,
-            response.allHeaders.map { it.name to listOf(it.value) }.toMap(),
-            response.entity.content.bufferedReader().readText(),
-            request.url()
+            response.code(),
+            response.message(),
+            response.headers().toMultimap(),
+            body,
+            latestUrl
         )
     }
 
-    private fun executeRequest(
-        downloadRequest: Request
-    ): CloseableHttpResponse {
-        val request = when (downloadRequest.httpMethod().toUpperCase()) {
-            "GET" -> HttpGet(downloadRequest.url())
-            else -> throw IllegalArgumentException("unknown method")
-        }
-        downloadRequest.headers().forEach {
-            request.addHeader(it.key, it.value.joinToString(","))
-        }
+    private fun buildRequest(request: Request): okhttp3.Request {
+        val httpMethod = request.httpMethod()
+        val url = request.url()
+        val headers = request.headers()
+        val dataToSend = request.dataToSend()
+        val requestBody = dataToSend?.let { RequestBody.create(null, it) }
 
-        // Not needed, but let's throw it in
-        if ("User-Agent" !in downloadRequest.headers()) {
-            request.addHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64)")
+        val requestBuilder: Builder = Builder()
+            .method(httpMethod, requestBody).url(url)
+            .addHeader("User-Agent", USER_AGENT)
+
+        for ((headerName, headerValueList) in headers) {
+            if (headerValueList.size > 1) {
+                requestBuilder.removeHeader(headerName)
+                for (headerValue in headerValueList) {
+                    requestBuilder.addHeader(headerName, headerValue)
+                }
+            } else if (headerValueList.size == 1) {
+                requestBuilder.header(headerName, headerValueList[0])
+            }
         }
-
-        val localContext = BasicHttpContext()
-        val cookieStore = BasicCookieStore()
-        localContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore)
-
-        return client.execute(request, localContext)
+        return requestBuilder.build()
     }
+}
+
+fun main() {
+    val searcher = YoutubeTrackSearcher()
+    val res = searcher.findTrackUrl(
+        Metadata(
+            "Kuscheln, Sex und Händchenhalten", listOf("MAYBEBOP"), "", listOf(), "", "", 0, 0
+        )
+    )
+    println("Result")
+    println(res)
+    println("Done")
 }

@@ -124,20 +124,14 @@
     <dependency>
       <groupId>com.github.thelinmichael</groupId>
       <artifactId>spotify-web-api-java</artifactId>
-      <version>6.3.0</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.12</version>
+      <version>6.5.4</version>
     </dependency>
 
     <!--YOUTUBE - SEARCH-->
     <dependency>
       <groupId>com.github.TeamNewPipe</groupId>
       <artifactId>NewPipeExtractor</artifactId>
-      <version>v0.19.8</version>
+      <version>f324772254</version>
     </dependency>
 
     <!--JFOENIX-->
@@ -145,6 +139,12 @@
       <groupId>com.jfoenix</groupId>
       <artifactId>jfoenix</artifactId>
       <version>8.0.10</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>3.13.0</version>
     </dependency>
   </dependencies>
 
