@@ -1,9 +1,9 @@
 package me.ialistannen.spotifydownloaderjvm.spotify
 
-import com.wrapper.spotify.SpotifyApi
-import com.wrapper.spotify.model_objects.specification.Playlist
-import com.wrapper.spotify.model_objects.specification.PlaylistTrack
 import io.reactivex.Observable
+import se.michaelthelin.spotify.SpotifyApi
+import se.michaelthelin.spotify.model_objects.specification.Playlist
+import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack
 
 class SpotifyTrackFetcher(
     private val spotifyApi: SpotifyApi

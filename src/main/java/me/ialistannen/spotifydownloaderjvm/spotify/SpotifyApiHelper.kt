@@ -1,10 +1,10 @@
 package me.ialistannen.spotifydownloaderjvm.spotify
 
-import com.wrapper.spotify.SpotifyApi
-import com.wrapper.spotify.model_objects.specification.PlaylistTrack
-import com.wrapper.spotify.requests.IRequest
 import io.reactivex.Observable
 import io.reactivex.Single
+import se.michaelthelin.spotify.SpotifyApi
+import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack
+import se.michaelthelin.spotify.requests.IRequest
 
 /**
  * Creates a [SpotifyApi] from the given client credentials.
@@ -36,7 +36,7 @@ fun <T> IRequest<T>.toSingle(): Single<T> {
  * @return true if ti follows the format roughly
  */
 fun String.isValidPlaylistLink(): Boolean {
-    val regex = Regex("/playlist/(.+?)[^a-z0-9A-Z]")
+    val regex = Regex("/playlist/(.+?)[^a-z\\dA-Z]")
     return regex.find(this) != null
 }
 

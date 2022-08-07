@@ -32,7 +32,7 @@ class DownloadScreenController {
         }
         val statusColumn = TableColumn<DownloadingTrack, Status>("Status").apply {
             setCellValueFactory { it.value.status }
-            cellFactory = Callback { _ ->
+            cellFactory = Callback {
                 object : TableCell<DownloadingTrack, Status>() {
                     override fun updateItem(item: Status?, empty: Boolean) {
                         super.updateItem(item, empty)
@@ -54,7 +54,7 @@ class DownloadScreenController {
 
         val progressColumn = TableColumn<DownloadingTrack, Number>("Progress").apply {
             setCellValueFactory { it.value.progress }
-            setCellFactory { _ ->
+            setCellFactory {
                 object : TableCell<DownloadingTrack, Number>() {
                     override fun updateItem(item: Number?, empty: Boolean) {
                         super.updateItem(item, empty)
@@ -72,7 +72,7 @@ class DownloadScreenController {
         }
         val errorColumn = TableColumn<DownloadingTrack, String>("Error").apply {
             setCellValueFactory { it.value.error }
-            setCellFactory { _ ->
+            setCellFactory {
                 object : TableCell<DownloadingTrack, String>() {
                     override fun updateItem(item: String?, empty: Boolean) {
                         super.updateItem(item, empty)

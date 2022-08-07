@@ -56,7 +56,7 @@ class TrackDownloader(
     }
 
     private fun String.sanitize(): String {
-        return replace(Regex("[^a-zA-Z0-9 \\-_.]"), "")
+        return replace(Regex("[^a-zA-Z\\d \\-_.]"), "")
                 .replace(" ", "_")
     }
 

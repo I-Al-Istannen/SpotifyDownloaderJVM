@@ -1,7 +1,5 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
-import com.wrapper.spotify.enums.ModelObjectType
-import com.wrapper.spotify.model_objects.specification.Track
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.internal.schedulers.ExecutorScheduler
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
@@ -14,6 +12,8 @@ import me.ialistannen.spotifydownloaderjvm.gui.model.DownloadingTrack
 import me.ialistannen.spotifydownloaderjvm.gui.model.Status
 import me.ialistannen.spotifydownloaderjvm.gui.util.getStackTraceString
 import me.ialistannen.spotifydownloaderjvm.spotify.SpotifyTrackFetcher
+import se.michaelthelin.spotify.enums.ModelObjectType
+import se.michaelthelin.spotify.model_objects.specification.Track
 import java.nio.file.Path
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -30,12 +30,12 @@ class Downloader(
         parallelism: Int
 ) {
 
-    private val executor: ExecutorService = Executors.newFixedThreadPool(parallelism, {
+    private val executor: ExecutorService = Executors.newFixedThreadPool(parallelism) {
         val thread = Thread(it)
         thread.isDaemon = true
 
         thread
-    })
+    }
     private val disposable: CompositeDisposable = CompositeDisposable()
 
     /**

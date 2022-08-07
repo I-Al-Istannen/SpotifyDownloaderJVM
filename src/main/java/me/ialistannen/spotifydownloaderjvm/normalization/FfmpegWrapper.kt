@@ -36,7 +36,7 @@ class FfmpegWrapper(
                     if (it.progress < 1) {
                         Observable.just(it.progress / 2)
                     } else {
-                        Observable.empty<Double>()
+                        Observable.empty()
                     }
                 }
                 is Finished -> {

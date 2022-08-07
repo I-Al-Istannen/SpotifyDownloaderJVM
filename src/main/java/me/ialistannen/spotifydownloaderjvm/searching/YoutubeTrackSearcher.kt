@@ -4,7 +4,7 @@ import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Request.Builder
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.downloader.Downloader
@@ -16,6 +16,7 @@ import org.schabi.newpipe.extractor.search.SearchInfo
 import org.schabi.newpipe.extractor.services.youtube.YoutubeService
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.stream.StreamType
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -58,7 +59,7 @@ class YoutubeTrackSearcher : TrackUrlSearcher {
     }
 
     private fun String.sanitize(): String {
-        return toLowerCase().replace(Regex("[^a-zA-Z0-9 \\-]"), "")
+        return lowercase(Locale.getDefault()).replace(Regex("[^a-zA-Z\\d \\-]"), "")
     }
 }
 
@@ -72,17 +73,17 @@ class DownloaderTestImpl(builder: OkHttpClient.Builder) : Downloader() {
         val okhttpRequest = buildRequest(request)
         val response: okhttp3.Response = client.newCall(okhttpRequest).execute()
 
-        if (response.code() == 429) {
+        if (response.code == 429) {
             response.close()
             throw ReCaptchaException("reCaptcha Challenge requested", request.url())
         }
 
-        val body = response.body()?.string()
-        val latestUrl: String = response.request().url().toString()
+        val body = response.body?.string()
+        val latestUrl: String = response.request.url.toString()
         return Response(
-            response.code(),
-            response.message(),
-            response.headers().toMultimap(),
+            response.code,
+            response.message,
+            response.headers.toMultimap(),
             body,
             latestUrl
         )
@@ -93,7 +94,7 @@ class DownloaderTestImpl(builder: OkHttpClient.Builder) : Downloader() {
         val url = request.url()
         val headers = request.headers()
         val dataToSend = request.dataToSend()
-        val requestBody = dataToSend?.let { RequestBody.create(null, it) }
+        val requestBody = dataToSend?.toRequestBody(null, 0)
 
         val requestBuilder: Builder = Builder()
             .method(httpMethod, requestBody).url(url)

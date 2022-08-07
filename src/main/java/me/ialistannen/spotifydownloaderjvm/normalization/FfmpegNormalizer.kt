@@ -23,7 +23,7 @@ class FfmpegNormalizer(
 
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val normalizer = FfmpegNormalizer(Paths.get("/bin/ffmpeg"), Paths.get("/bin/ffprobe"))
     normalizer.normalize(Paths.get("/tmp/hm.mp3")).subscribe {
         println(it)

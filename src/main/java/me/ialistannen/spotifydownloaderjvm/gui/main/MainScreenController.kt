@@ -117,9 +117,8 @@ class MainScreenController {
                         JavaFxObservable.valuesOf(clientId.textProperty().isEmpty, true),
                         JavaFxObservable.valuesOf(playlistUrl.textProperty(), "")
                                 .map { !playlistUrl.validate() }
-                ),
-                { array -> array.filterIsInstance<Boolean>().reduce({ one, two -> one || two }) }
-        )
+                )
+        ) { array -> array.filterIsInstance<Boolean>().reduce { one, two -> one || two } }
         downloadButton.disableProperty().bind(JavaFxObserver.toBinding(disableDownload))
     }
 

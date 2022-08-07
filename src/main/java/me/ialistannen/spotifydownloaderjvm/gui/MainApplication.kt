@@ -15,6 +15,7 @@ import me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery.FfmpegYoutube
 import me.ialistannen.spotifydownloaderjvm.gui.main.MainScreenController
 import me.ialistannen.spotifydownloaderjvm.gui.util.getInitialFolder
 import me.ialistannen.spotifydownloaderjvm.gui.util.getStackTraceString
+import java.util.*
 
 class MainApplication : Application() {
 
@@ -47,7 +48,7 @@ class MainApplication : Application() {
         FfmpegYoutubeDlDownloader().apply {
             needsToDownloadDependencies().subscribe { needsDownload ->
                 if (needsDownload) {
-                    if ("win" !in System.getProperty("os.name").toLowerCase()) {
+                    if ("win" !in System.getProperty("os.name").lowercase(Locale.getDefault())) {
                         val alert = Alert(Alert.AlertType.ERROR)
                         alert.title = "Dependency missing"
                         alert.headerText = "Please install all dependencies and restart the" +
@@ -71,7 +72,7 @@ class MainApplication : Application() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(JavaFxScheduler.platform())
                 .subscribe(
-                        { _ ->
+                        {
                             val alert = Alert(Alert.AlertType.INFORMATION)
                             alert.title = "Download successful"
                             alert.headerText = "Please restart the application now"

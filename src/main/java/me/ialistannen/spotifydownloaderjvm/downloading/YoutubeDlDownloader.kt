@@ -29,11 +29,11 @@ class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
             }
 
             try {
-                val dlResponse = execute(dlRequest, DownloadProgressCallback { progress, _ ->
+                val dlResponse = execute(dlRequest) { progress, _ ->
                     if (!it.isDisposed) {
                         it.onNext(progress.toDouble() / 100)
                     }
-                })
+                }
 
                 if (dlResponse.exitCode != 0) {
                     it.onError(YoutubeDLException("Non-zero exit code: '${dlResponse.exitCode}'"))
@@ -102,8 +102,7 @@ class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
             processBuilder.directory(File(directory))
         }
 
-        val process: Process
-        process = try {
+        val process: Process = try {
             processBuilder.start()
         } catch (e: IOException) {
             throw YoutubeDLException(e)
@@ -114,8 +113,7 @@ class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
                 val stdOutProcessor = StreamProcessExtractor(outBuffer, input, callback)
                 val stdErrProcessor = StreamGobbler(errBuffer, error)
 
-                val exitCode: Int
-                exitCode = try {
+                val exitCode: Int = try {
                     stdOutProcessor.join()
                     stdErrProcessor.join()
                     process.waitFor()

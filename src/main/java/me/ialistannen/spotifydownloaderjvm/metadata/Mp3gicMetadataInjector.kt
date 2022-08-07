@@ -48,7 +48,7 @@ class Mp3gicMetadataInjector : MetadataInjector {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     Mp3gicMetadataInjector().inject(
             Paths.get("/tmp/hm.mp3"),
             Metadata(
