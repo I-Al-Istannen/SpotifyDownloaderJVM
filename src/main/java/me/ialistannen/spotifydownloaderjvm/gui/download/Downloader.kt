@@ -103,6 +103,9 @@ class Downloader(
                                         }
                                         track.progress.set(it.progress)
                                     }
+                                    is TrackDownloader.DownloadProgress.DownloadMetadata -> {
+                                        // Metadata update, no action needed
+                                    }
                                 }
                             },
                             {

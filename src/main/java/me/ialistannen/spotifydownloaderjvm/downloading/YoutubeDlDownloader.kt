@@ -1,56 +1,64 @@
 package me.ialistannen.spotifydownloaderjvm.downloading
 
-import com.sapher.youtubedl.DownloadProgressCallback
-import com.sapher.youtubedl.YoutubeDLException
-import com.sapher.youtubedl.YoutubeDLRequest
-import com.sapher.youtubedl.YoutubeDLResponse
-import com.sapher.youtubedl.utils.StreamGobbler
-import com.sapher.youtubedl.utils.StreamProcessExtractor
 import io.reactivex.Observable
+import java.io.BufferedReader
 import java.io.File
-import java.io.IOException
+import java.io.InputStreamReader
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.regex.Pattern
 
-class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
+const val YT_DLP_EXECUTABLE = "yt-dlp"
+
+class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
 
     override fun canDownloader(url: String): Boolean {
         return "youtube" in url
     }
 
     override fun download(url: String, path: Path): Observable<Double> {
-        return Observable.create {
-            val dlRequest = SpaceAwareYoutubeDlRequest(url).apply {
-                setOption("extract-audio")
-                setOption("audio-format", "mp3")
-                setOption("output", makeOutputPath(path))
-                setOption("ffmpeg-location", ffmpegDirectory.toAbsolutePath().toString())
-                directory = getCurrentDirectory()
-            }
+        return Observable.create { emitter ->
+            val options = mutableMapOf<String, String?>()
+            options["extract-audio"] = null
+            options["audio-format"] = "mp3"
+            options["output"] = makeOutputPath(path)
+            options["ffmpeg-location"] = ffmpegDirectory.toAbsolutePath().toString()
+
+            val command = buildCommand(url, options)
+            val directory = getCurrentDirectory()
 
             try {
-                val dlResponse = execute(dlRequest) { progress, _ ->
-                    if (!it.isDisposed) {
-                        it.onNext(progress.toDouble() / 100)
+                val response = execute(command, directory) { progress ->
+                    if (!emitter.isDisposed) {
+                        emitter.onNext(progress)
                     }
                 }
 
-                if (dlResponse.exitCode != 0) {
-                    it.onError(YoutubeDLException("Non-zero exit code: '${dlResponse.exitCode}'"))
+                if (response.exitCode != 0) {
+                    emitter.onError(YtDlpException("Non-zero exit code: '${response.exitCode}'\n${response.err}"))
+                } else if (!emitter.isDisposed) {
+                    emitter.onComplete()
                 }
-
-                if (!it.isDisposed) {
-                    it.onComplete()
-                }
-            } catch (e: YoutubeDLException) {
-                if (!it.isDisposed) {
-                    it.onError(e)
+            } catch (e: YtDlpException) {
+                if (!emitter.isDisposed) {
+                    emitter.onError(e)
                 }
             }
         }
     }
 
-    private fun getCurrentDirectory() =
+    private fun buildCommand(url: String, options: Map<String, String?>): List<String> {
+        val args = mutableListOf(YT_DLP_EXECUTABLE, url)
+        options.forEach { (key, value) ->
+            args.add("--$key")
+            if (value != null) {
+                args.add(value)
+            }
+        }
+        return args
+    }
+
+    private fun getCurrentDirectory(): String =
         Paths.get(javaClass.protectionDomain.codeSource.location.toURI())
             .parent
             .toAbsolutePath()
@@ -63,38 +71,13 @@ class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
         return "$pathString.%(ext)s"
     }
 
-
-    private class SpaceAwareYoutubeDlRequest(url: String) : YoutubeDLRequest(url) {
-
-        fun buildNicerOptions(): List<String> {
-            val options = option.entries
-                .flatMap {
-                    val res = mutableListOf(
-                        "--" + it.key
-                    )
-                    if (it.value != null) {
-                        res.add(it.value)
-                    }
-                    res
-                }
-                .toMutableList()
-            options.add(0, url)
-
-            return options
-        }
-    }
-
-    @Throws(YoutubeDLException::class)
     private fun execute(
-        request: SpaceAwareYoutubeDlRequest,
-        callback: DownloadProgressCallback?
-    ): YoutubeDLResponse {
-        val command = listOf("youtube-dl") + request.buildNicerOptions()
-        val directory = request.directory
-        val options = request.option
-
-        val outBuffer = StringBuffer()
-        val errBuffer = StringBuffer()
+        command: List<String>,
+        directory: String?,
+        progressCallback: (Double) -> Unit
+    ): YtDlpResponse {
+        val outBuffer = StringBuilder()
+        val errBuffer = StringBuilder()
         val startTime = System.nanoTime()
 
         val processBuilder = ProcessBuilder(command)
@@ -102,44 +85,65 @@ class YoutubeDlDownloader(private val ffmpegDirectory: Path) : Downloader {
             processBuilder.directory(File(directory))
         }
 
-        val process: Process = try {
-            processBuilder.start()
-        } catch (e: IOException) {
-            throw YoutubeDLException(e)
-        }
+        val process = processBuilder.start()
 
-        process.inputStream.use { input ->
-            process.errorStream.use { error ->
-                val stdOutProcessor = StreamProcessExtractor(outBuffer, input, callback)
-                val stdErrProcessor = StreamGobbler(errBuffer, error)
-
-                val exitCode: Int = try {
-                    stdOutProcessor.join()
-                    stdErrProcessor.join()
-                    process.waitFor()
-                } catch (e: InterruptedException) {
-                    throw YoutubeDLException(e)
-                }
-
-                val out = outBuffer.toString()
-                val err = errBuffer.toString()
-
-                return if (exitCode > 0) {
-                    throw YoutubeDLException(err)
-                } else {
-                    val elapsedTime = ((System.nanoTime() - startTime) / 1000000L).toInt()
-                    YoutubeDLResponse(
-                        command.joinToString(" "),
-                        options,
-                        directory,
-                        exitCode,
-                        elapsedTime,
-                        out,
-                        err
-                    )
+        val stdoutThread = Thread {
+            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                reader.lineSequence().forEach { line ->
+                    outBuffer.appendLine(line)
+                    parseProgress(line)?.let { progressCallback(it) }
                 }
             }
         }
+
+        val stderrThread = Thread {
+            BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
+                reader.lineSequence().forEach { line ->
+                    errBuffer.appendLine(line)
+                }
+            }
+        }
+
+        stdoutThread.start()
+        stderrThread.start()
+
+        val exitCode: Int = try {
+            stdoutThread.join()
+            stderrThread.join()
+            process.waitFor()
+        } catch (e: InterruptedException) {
+            throw YtDlpException("Process interrupted", e)
+        }
+
+        val elapsedTime = ((System.nanoTime() - startTime) / 1000000L).toInt()
+        return YtDlpResponse(
+            command.joinToString(" "),
+            directory,
+            exitCode,
+            elapsedTime,
+            outBuffer.toString(),
+            errBuffer.toString()
+        )
     }
 
+    private fun parseProgress(line: String): Double? {
+        val pattern = Pattern.compile("\\[download\\]\\s+(\\d+\\.?\\d*)%")
+        val matcher = pattern.matcher(line)
+        return if (matcher.find()) {
+            matcher.group(1).toDoubleOrNull()?.div(100.0)
+        } else {
+            null
+        }
+    }
+
+    class YtDlpException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+    private data class YtDlpResponse(
+        val command: String,
+        val directory: String?,
+        val exitCode: Int,
+        val elapsedTime: Int,
+        val out: String,
+        val err: String
+    )
 }

@@ -3,6 +3,7 @@ package me.ialistannen.spotifydownloaderjvm.spotify
 import io.reactivex.Observable
 import io.reactivex.Single
 import se.michaelthelin.spotify.SpotifyApi
+import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack
 import se.michaelthelin.spotify.requests.IRequest
 
@@ -52,10 +53,12 @@ fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<Playlist
         var currentOffset = 1
 
         while (true) {
-            val tracksRequest = getPlaylistsItems(playlistId)
-                .offset(currentOffset - 1)
-                .build()
-            val paging = tracksRequest.execute()
+            val paging = executeWithRetry {
+                getPlaylistsItems(playlistId)
+                    .offset(currentOffset - 1)
+                    .build()
+                    .execute()
+            }
 
             if (!observable.isDisposed) {
                 paging.items.forEach { observable.onNext(it) }
@@ -72,4 +75,25 @@ fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<Playlist
             observable.onComplete()
         }
     }
+}
+
+/**
+ * Executes a Spotify API call with retry on rate limiting.
+ */
+fun <T> executeWithRetry(maxRetries: Int = 3, action: () -> T): T {
+    var lastException: TooManyRequestsException? = null
+    repeat(maxRetries) { attempt ->
+        try {
+            return action()
+        } catch (e: TooManyRequestsException) {
+            lastException = e
+            val retryAfter = e.retryAfter ?: 1
+            println("Rate limited by Spotify. Waiting ${retryAfter}s before retry ${attempt + 1}/$maxRetries...")
+            for (remaining in retryAfter downTo 1) {
+                println("  Retrying in ${remaining}s...")
+                Thread.sleep(1000)
+            }
+        }
+    }
+    throw lastException!!
 }

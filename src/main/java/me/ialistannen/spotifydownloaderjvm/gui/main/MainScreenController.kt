@@ -1,8 +1,5 @@
 package me.ialistannen.spotifydownloaderjvm.gui.main
 
-import com.jfoenix.controls.JFXSlider
-import com.jfoenix.controls.JFXTextField
-import com.jfoenix.validation.base.ValidatorBase
 import io.reactivex.Observable
 import io.reactivex.rxjavafx.observables.JavaFxObservable
 import io.reactivex.rxjavafx.observers.JavaFxObserver
@@ -13,13 +10,14 @@ import javafx.scene.Scene
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.Label
-import javafx.scene.control.TextInputControl
+import javafx.scene.control.Slider
+import javafx.scene.control.TextField
 import javafx.scene.layout.Pane
 import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Stage
-import me.ialistannen.spotifydownloaderjvm.downloading.YoutubeDlDownloader
+import me.ialistannen.spotifydownloaderjvm.downloading.YtDlpDownloader
 import me.ialistannen.spotifydownloaderjvm.glue.TrackDownloader
 import me.ialistannen.spotifydownloaderjvm.gui.MainApplication
 import me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery.FfmpegFinder
@@ -41,10 +39,10 @@ import kotlin.math.roundToInt
 
 class MainScreenController {
     @FXML
-    private lateinit var playlistUrl: JFXTextField
+    private lateinit var playlistUrl: TextField
 
     @FXML
-    private lateinit var parallelismSlider: JFXSlider
+    private lateinit var parallelismSlider: Slider
 
     @FXML
     private lateinit var outputPath: Label
@@ -53,16 +51,16 @@ class MainScreenController {
     private lateinit var downloadButton: Button
 
     @FXML
-    private lateinit var clientId: JFXTextField
+    private lateinit var clientId: TextField
 
     @FXML
-    private lateinit var clientSecret: JFXTextField
+    private lateinit var clientSecret: TextField
 
     @FXML
-    private lateinit var ffmpegPath: JFXTextField
+    private lateinit var ffmpegPath: TextField
 
     @FXML
-    private lateinit var ffprobePath: JFXTextField
+    private lateinit var ffprobePath: TextField
 
     private var outputFile: File? = null
     private var ffmpeg: File? = null
@@ -70,7 +68,6 @@ class MainScreenController {
 
     @FXML
     private fun initialize() {
-        setupPlaylistUrl()
         setupDownloadButton()
         setupFfmpegSettings()
 
@@ -100,15 +97,6 @@ class MainScreenController {
                 .forEach { action.invoke(it) }
     }
 
-    private fun setupPlaylistUrl() {
-        playlistUrl.validators.add(object : ValidatorBase() {
-            override fun eval() {
-                val textField = srcControl.value as TextInputControl
-                hasErrors.set(!textField.text.isValidPlaylistLink())
-            }
-        })
-    }
-
     private fun setupDownloadButton() {
         val disableDownload = Observable.combineLatest(
                 listOf<Observable<Boolean>>(
@@ -116,7 +104,7 @@ class MainScreenController {
                         JavaFxObservable.valuesOf(clientSecret.textProperty().isEmpty, true),
                         JavaFxObservable.valuesOf(clientId.textProperty().isEmpty, true),
                         JavaFxObservable.valuesOf(playlistUrl.textProperty(), "")
-                                .map { !playlistUrl.validate() }
+                                .map { !it.isValidPlaylistLink() }
                 )
         ) { array -> array.filterIsInstance<Boolean>().reduce { one, two -> one || two } }
         downloadButton.disableProperty().bind(JavaFxObserver.toBinding(disableDownload))
@@ -165,7 +153,7 @@ class MainScreenController {
                 TrackDownloader(
                         SpotifyMetadataFetcher(spotifyApi),
                         YoutubeTrackSearcher(),
-                        YoutubeDlDownloader(ffmpeg!!.toPath().parent),
+                        YtDlpDownloader(ffmpeg!!.toPath().parent),
                         FfmpegNormalizer(
                                 ffmpeg!!.toPath(), ffprobe!!.toPath()
                         ),

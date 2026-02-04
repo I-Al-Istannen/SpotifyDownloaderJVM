@@ -1,6 +1,5 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
-import com.jfoenix.controls.JFXButton
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.text.Font
@@ -88,7 +87,7 @@ class DownloadScreenController {
                             return
                         }
 
-                        graphic = JFXButton("Show").apply {
+                        graphic = Button("Show").apply {
                             setOnAction {
                                 val alert = Alert(Alert.AlertType.ERROR)
                                 alert.title = "Error message"

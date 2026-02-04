@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ButtonBar?>
@@ -48,10 +48,9 @@
         </TableView>
         <ButtonBar GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
           <buttons>
-            <JFXButton fx:id="downloadButton" defaultButton="true"
-              maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-              onAction="#onDownload" styleClass="s" text="Download"/>
-            <JFXButton cancelButton="true" onAction="#onCancel" styleClass="s" text="Cancel"/>
+            <Button fx:id="downloadButton" defaultButton="true"
+              minWidth="120" onAction="#onDownload" text="Download"/>
+            <Button cancelButton="true" minWidth="100" onAction="#onCancel" text="Cancel"/>
           </buttons>
           <GridPane.margin>
             <Insets bottom="20.0" right="20.0" top="20.0"/>

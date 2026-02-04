@@ -16,15 +16,15 @@ fun getInitialFolder(clazz: Class<*>): Path {
 }
 
 /**
- * Finds an executable starting with the given name in the given initial folder (infitely deep)
+ * Finds an executable with the given name in the given initial folder (infitely deep)
  * OR on the path (2 folders deep, max).
  *
- * @param nameStart the start of its name, case sensitive
+ * @param name the name, case sensitive
  * @param initialFolder the initial folder to search in
  */
-fun findExecutable(nameStart: String, initialFolder: Path): Maybe<Path> {
+fun findExecutable(name: String, initialFolder: Path): Maybe<Path> {
     return Maybe.create { emitter ->
-        val initialResult: Path? = findInFolder(initialFolder, nameStart, Integer.MAX_VALUE)
+        val initialResult: Path? = findInFolder(initialFolder, name, Integer.MAX_VALUE)
 
         if (initialResult != null) {
             emitter.onSuccess(initialResult)
@@ -43,11 +43,11 @@ fun findExecutable(nameStart: String, initialFolder: Path): Maybe<Path> {
                 .filter { Files.exists(it) }
                 .forEach {
                     if (Files.isRegularFile(it)) {
-                        if (it.fileName.startsWith(nameStart)) {
+                        if (it.fileName.toString() == name) {
                             emitter.onSuccess(it)
                         }
                     } else {
-                        val result = findInFolder(it, nameStart, 2)
+                        val result = findInFolder(it, name, 2)
                         if (result != null) {
                             emitter.onSuccess(result)
                         }
@@ -60,20 +60,20 @@ fun findExecutable(nameStart: String, initialFolder: Path): Maybe<Path> {
 }
 
 /**
- * Finds a file starting with the given name in a folder.
+ * Finds an executable file with the given name in a folder.
  *
  * @param folder the folder to look inside
- * @param nameStart the start of its name, case sensitive
+ * @param name the name, case sensitive
  * @param depth the maximum depth to traverse
  */
-fun findInFolder(folder: Path, nameStart: String, depth: Int): Path? {
+fun findInFolder(folder: Path, name: String, depth: Int): Path? {
     if (!Files.isDirectory(folder)) {
         return null
     }
     var found: Path? = null
     Files.walkFileTree(folder, emptySet(), depth, object : SimpleFileVisitor<Path>() {
         override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-            if (!file.fileName.toString().startsWith(nameStart)) {
+            if (file.fileName.toString() != name) {
                 return FileVisitResult.CONTINUE
             }
 

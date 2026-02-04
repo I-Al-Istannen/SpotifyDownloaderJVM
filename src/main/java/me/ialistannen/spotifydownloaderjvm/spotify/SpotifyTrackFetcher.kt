@@ -2,7 +2,6 @@ package me.ialistannen.spotifydownloaderjvm.spotify
 
 import io.reactivex.Observable
 import se.michaelthelin.spotify.SpotifyApi
-import se.michaelthelin.spotify.model_objects.specification.Playlist
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack
 
 class SpotifyTrackFetcher(
@@ -45,11 +44,9 @@ class SpotifyTrackFetcher(
      * @param playlistId the id of the playlist
      */
     fun getPlaylistName(playlistId: String): Observable<String> {
-        return spotifyApi.getPlaylist(playlistId).build().toSingle<Playlist>()
-            .toObservable()
-            .map {
-                it.name
-            }
+        return Observable.fromCallable {
+            executeWithRetry { spotifyApi.getPlaylist(playlistId).build().execute() }
+        }.map { it.name }
     }
 
     /**

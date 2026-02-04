@@ -2,6 +2,7 @@ package me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery
 
 import io.reactivex.Maybe
 import io.reactivex.Single
+import me.ialistannen.spotifydownloaderjvm.downloading.YT_DLP_EXECUTABLE
 import me.ialistannen.spotifydownloaderjvm.gui.util.findExecutable
 import me.ialistannen.spotifydownloaderjvm.gui.util.getInitialFolder
 import java.net.URL
@@ -15,7 +16,7 @@ class FfmpegYoutubeDlDownloader {
     companion object {
         private const val FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/" +
                 "ffmpeg-latest-win64-static.zip"
-        private const val YOUTUBE_DL_URL = "https://yt-dl.org/downloads/2018.03.03/youtube-dl.exe"
+        private const val YT_DLP_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
     }
 
     /**
@@ -26,14 +27,14 @@ class FfmpegYoutubeDlDownloader {
      */
     fun download(targetDir: Path): Single<out Any> {
         return downloadFfmpeg(targetDir)
-                .flatMap { downloadYoutubeDl(targetDir) }
+                .flatMap { downloadYtDlp(targetDir) }
                 .toSingle()
     }
 
-    private fun downloadYoutubeDl(targetDirectory: Path): Maybe<Path> {
+    private fun downloadYtDlp(targetDirectory: Path): Maybe<Path> {
         return downloadFile(
-                targetDirectory.resolve("youtube-dl.exe"),
-                URL(YOUTUBE_DL_URL)
+                targetDirectory.resolve("$YT_DLP_EXECUTABLE.exe"),
+                URL(YT_DLP_URL)
         )
     }
 
@@ -97,7 +98,7 @@ class FfmpegYoutubeDlDownloader {
                             .map { foundFfprobe }
                             .toSingle(true)
                 }.flatMap { foundOthers ->
-                    findExecutable("youtube-dl", initialFolder)
+                    findExecutable(YT_DLP_EXECUTABLE, initialFolder)
                             .map { foundOthers }
                             .toSingle(true)
                 }
