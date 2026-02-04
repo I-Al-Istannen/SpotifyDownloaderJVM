@@ -10,14 +10,16 @@ import java.util.regex.Pattern
 
 const val YT_DLP_EXECUTABLE = "yt-dlp"
 
-class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
+class YtDlpDownloader(
+    private val ffmpegDirectory: Path,
+) : Downloader {
+    override fun canDownload(url: String): Boolean = "youtube" in url
 
-    override fun canDownloader(url: String): Boolean {
-        return "youtube" in url
-    }
-
-    override fun download(url: String, path: Path): Observable<Double> {
-        return Observable.create { emitter ->
+    override fun download(
+        url: String,
+        path: Path,
+    ): Observable<Double> =
+        Observable.create { emitter ->
             val options = mutableMapOf<String, String?>()
             options["extract-audio"] = null
             options["audio-format"] = "mp3"
@@ -28,11 +30,12 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
             val directory = getCurrentDirectory()
 
             try {
-                val response = execute(command, directory) { progress ->
-                    if (!emitter.isDisposed) {
-                        emitter.onNext(progress)
+                val response =
+                    execute(command, directory) { progress ->
+                        if (!emitter.isDisposed) {
+                            emitter.onNext(progress)
+                        }
                     }
-                }
 
                 if (response.exitCode != 0) {
                     emitter.onError(YtDlpException("Non-zero exit code: '${response.exitCode}'\n${response.err}"))
@@ -45,9 +48,11 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
                 }
             }
         }
-    }
 
-    private fun buildCommand(url: String, options: Map<String, String?>): List<String> {
+    private fun buildCommand(
+        url: String,
+        options: Map<String, String?>,
+    ): List<String> {
         val args = mutableListOf(YT_DLP_EXECUTABLE, url)
         options.forEach { (key, value) ->
             args.add("--$key")
@@ -59,14 +64,20 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
     }
 
     private fun getCurrentDirectory(): String =
-        Paths.get(javaClass.protectionDomain.codeSource.location.toURI())
-            .parent
+        Paths
+            .get(
+                javaClass.protectionDomain.codeSource.location
+                    .toURI(),
+            ).parent
             .toAbsolutePath()
             .toString()
 
     private fun makeOutputPath(path: Path): String {
-        val pathString = path.toAbsolutePath().toString()
-            .replace(".mp3", "")
+        val pathString =
+            path
+                .toAbsolutePath()
+                .toString()
+                .replace(".mp3", "")
 
         return "$pathString.%(ext)s"
     }
@@ -74,7 +85,7 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
     private fun execute(
         command: List<String>,
         directory: String?,
-        progressCallback: (Double) -> Unit
+        progressCallback: (Double) -> Unit,
     ): YtDlpResponse {
         val outBuffer = StringBuilder()
         val errBuffer = StringBuilder()
@@ -87,33 +98,36 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
 
         val process = processBuilder.start()
 
-        val stdoutThread = Thread {
-            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-                reader.lineSequence().forEach { line ->
-                    outBuffer.appendLine(line)
-                    parseProgress(line)?.let { progressCallback(it) }
+        val stdoutThread =
+            Thread {
+                BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                    reader.lineSequence().forEach { line ->
+                        outBuffer.appendLine(line)
+                        parseProgress(line)?.let { progressCallback(it) }
+                    }
                 }
             }
-        }
 
-        val stderrThread = Thread {
-            BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
-                reader.lineSequence().forEach { line ->
-                    errBuffer.appendLine(line)
+        val stderrThread =
+            Thread {
+                BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
+                    reader.lineSequence().forEach { line ->
+                        errBuffer.appendLine(line)
+                    }
                 }
             }
-        }
 
         stdoutThread.start()
         stderrThread.start()
 
-        val exitCode: Int = try {
-            stdoutThread.join()
-            stderrThread.join()
-            process.waitFor()
-        } catch (e: InterruptedException) {
-            throw YtDlpException("Process interrupted", e)
-        }
+        val exitCode: Int =
+            try {
+                stdoutThread.join()
+                stderrThread.join()
+                process.waitFor()
+            } catch (e: InterruptedException) {
+                throw YtDlpException("Process interrupted", e)
+            }
 
         val elapsedTime = ((System.nanoTime() - startTime) / 1000000L).toInt()
         return YtDlpResponse(
@@ -122,7 +136,7 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
             exitCode,
             elapsedTime,
             outBuffer.toString(),
-            errBuffer.toString()
+            errBuffer.toString(),
         )
     }
 
@@ -136,7 +150,10 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
         }
     }
 
-    class YtDlpException(message: String, cause: Throwable? = null) : Exception(message, cause)
+    class YtDlpException(
+        message: String,
+        cause: Throwable? = null,
+    ) : Exception(message, cause)
 
     private data class YtDlpResponse(
         val command: String,
@@ -144,6 +161,6 @@ class YtDlpDownloader(private val ffmpegDirectory: Path) : Downloader {
         val exitCode: Int,
         val elapsedTime: Int,
         val out: String,
-        val err: String
+        val err: String,
     )
 }

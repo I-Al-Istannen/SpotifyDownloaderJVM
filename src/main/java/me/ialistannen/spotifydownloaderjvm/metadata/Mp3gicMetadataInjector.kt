@@ -10,15 +10,18 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 class Mp3gicMetadataInjector : MetadataInjector {
-
-    override fun inject(file: Path, metadata: Metadata) {
+    override fun inject(
+        file: Path,
+        metadata: Metadata,
+    ) {
         val mp3File = Mp3File(file)
 
-        val tag: ID3v2 = if (mp3File.hasId3v2Tag()) {
-            mp3File.id3v2Tag
-        } else {
-            ID3v24Tag()
-        }
+        val tag: ID3v2 =
+            if (mp3File.hasId3v2Tag()) {
+                mp3File.id3v2Tag
+            } else {
+                ID3v24Tag()
+            }
 
         tag.title = metadata.title
         tag.album = metadata.album
@@ -29,7 +32,6 @@ class Mp3gicMetadataInjector : MetadataInjector {
 
         val image = downloadImage(metadata.albumArtUrl)
         tag.setAlbumImage(image.first, image.second)
-
 
         val tmpFile = Files.createTempFile("MetadataInjector", file.fileName.toString())
         mp3File.save(tmpFile.toAbsolutePath().toString())
@@ -50,17 +52,17 @@ class Mp3gicMetadataInjector : MetadataInjector {
 
 fun main() {
     Mp3gicMetadataInjector().inject(
-            Paths.get("/tmp/hm.mp3"),
-            Metadata(
-                    title = "Fiji Water",
-                    album = "Reel 2",
-                    artists = listOf("Owl City"),
-                    genre = listOf("Pop", "Electronic"),
-                    albumArtUrl = "https://i.scdn.co/image/0d1ee0bdb67f225c437efd8e152655e56575d2dc",
-                    releaseDate = "01.12.2017",
-                    trackNumber = 2,
-                    totalTrackNumber = 3
-            )
+        Paths.get("/tmp/hm.mp3"),
+        Metadata(
+            title = "Fiji Water",
+            album = "Reel 2",
+            artists = listOf("Owl City"),
+            genre = listOf("Pop", "Electronic"),
+            albumArtUrl = "https://i.scdn.co/image/0d1ee0bdb67f225c437efd8e152655e56575d2dc",
+            releaseDate = "01.12.2017",
+            trackNumber = 2,
+            totalTrackNumber = 3,
+        ),
     )
 
     val mp3File = Mp3File("/tmp/hm.mp3")

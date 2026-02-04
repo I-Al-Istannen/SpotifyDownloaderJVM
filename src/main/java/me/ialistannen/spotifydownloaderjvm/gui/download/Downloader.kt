@@ -24,18 +24,18 @@ import java.util.concurrent.Executors
  * **Can not be reused, as it keeps internal state!**
  */
 class Downloader(
-        private val trackDownloader: TrackDownloader,
-        private val spotifyTrackFetcher: SpotifyTrackFetcher,
-        private val outputFolder: Path,
-        parallelism: Int
+    private val trackDownloader: TrackDownloader,
+    private val spotifyTrackFetcher: SpotifyTrackFetcher,
+    private val outputFolder: Path,
+    parallelism: Int,
 ) {
+    private val executor: ExecutorService =
+        Executors.newFixedThreadPool(parallelism) {
+            val thread = Thread(it)
+            thread.isDaemon = true
 
-    private val executor: ExecutorService = Executors.newFixedThreadPool(parallelism) {
-        val thread = Thread(it)
-        thread.isDaemon = true
-
-        thread
-    }
+            thread
+        }
     private val disposable: CompositeDisposable = CompositeDisposable()
 
     /**
@@ -44,44 +44,46 @@ class Downloader(
      * @param playlistLink the link to the playlist
      * @param downloadScreenController the [DownloadScreenController] to populate
      */
-    fun passPlaylistTracks(playlistLink: String, downloadScreenController: DownloadScreenController) {
+    fun passPlaylistTracks(
+        playlistLink: String,
+        downloadScreenController: DownloadScreenController,
+    ) {
         val errorHandler = buildErrorHandler()
 
-        spotifyTrackFetcher.getPlaylistNameFromLink(playlistLink)
-                .subscribeOn(Schedulers.io())
-                .observeOn(JavaFxScheduler.platform())
-                .subscribe(
-                        { downloadScreenController.setPlaylistName(it) },
-                        errorHandler
-                )
+        spotifyTrackFetcher
+            .getPlaylistNameFromLink(playlistLink)
+            .subscribeOn(Schedulers.io())
+            .observeOn(JavaFxScheduler.platform())
+            .subscribe(
+                { downloadScreenController.setPlaylistName(it) },
+                errorHandler,
+            )
 
-        spotifyTrackFetcher.getPlaylistTracksFromLink(playlistLink)
+        spotifyTrackFetcher
+            .getPlaylistTracksFromLink(playlistLink)
             .map { it.track }
             .filter { it.type == ModelObjectType.TRACK }
             .map { it as Track }
             .filter { it.id != null }
-                .map {
-                    DownloadingTrack.newInstance(
-                            Status.QUEUED,
-                            it.name,
-                            it.artists[0].name,
-                            it.id,
-                            SimpleDoubleProperty(-1.0)
-                    )
-                }
-                .toList()
-                .observeOn(JavaFxScheduler.platform())
-                .subscribe(
-                        {
-                            downloadScreenController.setTracks(it)
-                        },
-                        errorHandler
+            .map {
+                DownloadingTrack.newInstance(
+                    Status.QUEUED,
+                    it.name,
+                    it.artists[0].name,
+                    it.id,
+                    SimpleDoubleProperty(-1.0),
                 )
+            }.toList()
+            .observeOn(JavaFxScheduler.platform())
+            .subscribe(
+                {
+                    downloadScreenController.setTracks(it)
+                },
+                errorHandler,
+            )
     }
 
-    private fun buildErrorHandler(): (Throwable) -> Unit {
-        return { throwable -> throwable.printStackTrace() }
-    }
+    private fun buildErrorHandler(): (Throwable) -> Unit = { throwable -> throwable.printStackTrace() }
 
     /**
      * Starts the download of the given tracks.
@@ -90,36 +92,38 @@ class Downloader(
      */
     fun startDownload(tracks: Iterable<DownloadingTrack>) {
         tracks.forEach { track ->
-            trackDownloader.downloadTrack(track.id.value, outputFolder)
+            trackDownloader
+                .downloadTrack(track.id.value, outputFolder)
                 .subscribeOn(ExecutorScheduler(executor, false))
-                    .subscribe(
-                            {
-                                when (it) {
-                                    is TrackDownloader.DownloadProgress.Progress -> {
-                                        if (it.progress >= 0.5) {
-                                            track.status.set(Status.PROCESSING)
-                                        } else {
-                                            track.status.set(Status.DOWNLOADING)
-                                        }
-                                        track.progress.set(it.progress)
-                                    }
-                                    is TrackDownloader.DownloadProgress.DownloadMetadata -> {
-                                        // Metadata update, no action needed
-                                    }
-                                }
-                            },
-                            {
-                                if (it is VideoNotFoundException) {
-                                    track.status.set(Status.NOT_FOUND)
+                .subscribe(
+                    {
+                        when (it) {
+                            is TrackDownloader.DownloadProgress.Progress -> {
+                                if (it.progress >= 0.5) {
+                                    track.status.set(Status.PROCESSING)
                                 } else {
-                                    track.status.set(Status.ERROR)
+                                    track.status.set(Status.DOWNLOADING)
                                 }
-                                track.error.set(it.getStackTraceString())
-                            },
-                            {
-                                track.status.set(Status.FINISHED)
+                                track.progress.set(it.progress)
                             }
-                    ).addTo(disposable)
+
+                            is TrackDownloader.DownloadProgress.DownloadMetadata -> {
+                                // Metadata update, no action needed
+                            }
+                        }
+                    },
+                    {
+                        if (it is VideoNotFoundException) {
+                            track.status.set(Status.NOT_FOUND)
+                        } else {
+                            track.status.set(Status.ERROR)
+                        }
+                        track.error.set(it.getStackTraceString())
+                    },
+                    {
+                        track.status.set(Status.FINISHED)
+                    },
+                ).addTo(disposable)
         }
     }
 

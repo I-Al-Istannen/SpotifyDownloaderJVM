@@ -13,8 +13,16 @@ import se.michaelthelin.spotify.requests.IRequest
  * @param clientId the client id
  * @param clientSecret the client secret
  */
-fun createSpotifyApiFromClientCredentials(clientSecret: String, clientId: String): SpotifyApi {
-    val api = SpotifyApi.builder().setClientId(clientId).setClientSecret(clientSecret).build()
+fun createSpotifyApiFromClientCredentials(
+    clientSecret: String,
+    clientId: String,
+): SpotifyApi {
+    val api =
+        SpotifyApi
+            .builder()
+            .setClientId(clientId)
+            .setClientSecret(clientSecret)
+            .build()
 
     val credentials = api.clientCredentials().build().execute()
     api.accessToken = credentials.accessToken
@@ -25,9 +33,7 @@ fun createSpotifyApiFromClientCredentials(clientSecret: String, clientId: String
 /**
  * Converts an [IRequest] to a [Single].
  */
-fun <T> IRequest<T>.toSingle(): Single<T> {
-    return Single.fromCallable { this.execute() }
-}
+fun <T> IRequest<T>.toSingle(): Single<T> = Single.fromCallable { this.execute() }
 
 /**
  * Checks if this string roughly follows this format.
@@ -41,24 +47,24 @@ fun String.isValidPlaylistLink(): Boolean {
     return regex.find(this) != null
 }
 
-
 /**
  * Returns all tracks in a playlist.
  *
  * @param playlistId the id of the playlist
  * @return all tracks in this playlist
  */
-fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<PlaylistTrack> {
-    return Observable.create { observable ->
+fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<PlaylistTrack> =
+    Observable.create { observable ->
         var currentOffset = 1
 
         while (true) {
-            val paging = executeWithRetry {
-                getPlaylistsItems(playlistId)
-                    .offset(currentOffset - 1)
-                    .build()
-                    .execute()
-            }
+            val paging =
+                executeWithRetry {
+                    getPlaylistsItems(playlistId)
+                        .offset(currentOffset - 1)
+                        .build()
+                        .execute()
+                }
 
             if (!observable.isDisposed) {
                 paging.items.forEach { observable.onNext(it) }
@@ -75,12 +81,14 @@ fun SpotifyApi.getAllTracksFromPlaylist(playlistId: String): Observable<Playlist
             observable.onComplete()
         }
     }
-}
 
 /**
  * Executes a Spotify API call with retry on rate limiting.
  */
-fun <T> executeWithRetry(maxRetries: Int = 3, action: () -> T): T {
+fun <T> executeWithRetry(
+    maxRetries: Int = 3,
+    action: () -> T,
+): T {
     var lastException: TooManyRequestsException? = null
     repeat(maxRetries) { attempt ->
         try {

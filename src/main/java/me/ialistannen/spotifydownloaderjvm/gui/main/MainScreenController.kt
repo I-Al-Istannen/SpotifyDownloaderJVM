@@ -36,7 +36,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.math.roundToInt
 
-
 class MainScreenController {
     @FXML
     private lateinit var playlistUrl: TextField
@@ -77,12 +76,12 @@ class MainScreenController {
     private fun setupFfmpegSettings() {
         val ffmpegFinder = FfmpegFinder()
         ffmpegFinder.findFfmpeg().subscribe(
-                { ffmpegPath.text = it.toAbsolutePath().toString() },
-                { it.printStackTrace() }
+            { ffmpegPath.text = it.toAbsolutePath().toString() },
+            { it.printStackTrace() },
         )
         ffmpegFinder.findFfprobe().subscribe(
-                { ffprobePath.text = it.toAbsolutePath().toString() },
-                { it.printStackTrace() }
+            { ffprobePath.text = it.toAbsolutePath().toString() },
+            { it.printStackTrace() },
         )
 
         ffmpegPath.textProperty().observeToPath { ffmpeg = it.toFile() }
@@ -90,23 +89,26 @@ class MainScreenController {
     }
 
     private fun ObservableValue<String>.observeToPath(action: (Path) -> Unit) {
-        JavaFxObservable.valuesOf(this)
-                .filter { it.isNotBlank() }
-                .map { Paths.get(it) }
-                .filter { Files.exists(it) }
-                .forEach { action.invoke(it) }
+        JavaFxObservable
+            .valuesOf(this)
+            .filter { it.isNotBlank() }
+            .map { Paths.get(it) }
+            .filter { Files.exists(it) }
+            .forEach { action.invoke(it) }
     }
 
     private fun setupDownloadButton() {
-        val disableDownload = Observable.combineLatest(
+        val disableDownload =
+            Observable.combineLatest(
                 listOf<Observable<Boolean>>(
-                        JavaFxObservable.valuesOf(playlistUrl.textProperty().isEmpty, true),
-                        JavaFxObservable.valuesOf(clientSecret.textProperty().isEmpty, true),
-                        JavaFxObservable.valuesOf(clientId.textProperty().isEmpty, true),
-                        JavaFxObservable.valuesOf(playlistUrl.textProperty(), "")
-                                .map { !it.isValidPlaylistLink() }
-                )
-        ) { array -> array.filterIsInstance<Boolean>().reduce { one, two -> one || two } }
+                    JavaFxObservable.valuesOf(playlistUrl.textProperty().isEmpty, true),
+                    JavaFxObservable.valuesOf(clientSecret.textProperty().isEmpty, true),
+                    JavaFxObservable.valuesOf(clientId.textProperty().isEmpty, true),
+                    JavaFxObservable
+                        .valuesOf(playlistUrl.textProperty(), "")
+                        .map { !it.isValidPlaylistLink() },
+                ),
+            ) { array -> array.filterIsInstance<Boolean>().reduce { one, two -> one || two } }
         downloadButton.disableProperty().bind(JavaFxObserver.toBinding(disableDownload))
     }
 
@@ -145,24 +147,27 @@ class MainScreenController {
         val pane: Pane = fxmlLoader.load()
         val controller: DownloadScreenController = fxmlLoader.getController()
 
-        val spotifyApi = createSpotifyApiFromClientCredentials(
+        val spotifyApi =
+            createSpotifyApiFromClientCredentials(
                 clientSecret.text,
-                clientId.text
-        )
-        val downloader = Downloader(
+                clientId.text,
+            )
+        val downloader =
+            Downloader(
                 TrackDownloader(
-                        SpotifyMetadataFetcher(spotifyApi),
-                        YoutubeTrackSearcher(),
-                        YtDlpDownloader(ffmpeg!!.toPath().parent),
-                        FfmpegNormalizer(
-                                ffmpeg!!.toPath(), ffprobe!!.toPath()
-                        ),
-                        Mp3gicMetadataInjector()
+                    SpotifyMetadataFetcher(spotifyApi),
+                    YoutubeTrackSearcher(),
+                    YtDlpDownloader(ffmpeg!!.toPath().parent),
+                    FfmpegNormalizer(
+                        ffmpeg!!.toPath(),
+                        ffprobe!!.toPath(),
+                    ),
+                    Mp3gicMetadataInjector(),
                 ),
                 SpotifyTrackFetcher(spotifyApi),
                 outputFile!!.toPath(),
-                parallelism
-        )
+                parallelism,
+            )
         downloader.passPlaylistTracks(playlistUrl, controller)
         controller.downloader = downloader
 

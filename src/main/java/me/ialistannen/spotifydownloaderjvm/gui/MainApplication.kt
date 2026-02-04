@@ -16,10 +16,9 @@ import me.ialistannen.spotifydownloaderjvm.gui.dependencydiscovery.FfmpegYoutube
 import me.ialistannen.spotifydownloaderjvm.gui.main.MainScreenController
 import me.ialistannen.spotifydownloaderjvm.gui.util.getInitialFolder
 import me.ialistannen.spotifydownloaderjvm.gui.util.getStackTraceString
-import java.util.*
+import java.util.Locale
 
 class MainApplication : Application() {
-
     companion object {
         lateinit var stage: Stage
             private set
@@ -41,8 +40,7 @@ class MainApplication : Application() {
         if ("client_secret" in parameters.named) {
             controller.setClientSecret(parameters.named["client_secret"]!!)
         }
-        
-        
+
         primaryStage.scene = Scene(pane)
 
         primaryStage.sizeToScene()
@@ -56,13 +54,13 @@ class MainApplication : Application() {
                         val alert = Alert(Alert.AlertType.ERROR)
                         alert.title = "Dependency missing"
                         alert.headerText = "Please install all dependencies and restart the" +
-                                " application"
+                            " application"
                         alert.showAndWait()
                     } else {
                         val alert = Alert(Alert.AlertType.ERROR)
                         alert.title = "Dependency missing"
                         alert.headerText = "I will now try to install the dependencies, do not" +
-                                " close the application until I say so."
+                            " close the application until I say so."
                         alert.show()
                         downloadDependencies(this)
                     }
@@ -72,29 +70,31 @@ class MainApplication : Application() {
     }
 
     private fun downloadDependencies(downloader: FfmpegYoutubeDlDownloader) {
-        downloader.download(getInitialFolder(MainApplication::class.java))
-                .subscribeOn(Schedulers.io())
-                .observeOn(JavaFxScheduler.platform())
-                .subscribe(
-                        {
-                            val alert = Alert(Alert.AlertType.INFORMATION)
-                            alert.title = "Download successful"
-                            alert.headerText = "Please restart the application now"
-                            alert.showAndWait()
-                            Platform.exit()
-                        },
-                        {
-                            val alert = Alert(Alert.AlertType.ERROR)
-                            alert.title = "Download unsuccessful"
-                            alert.headerText = "Please download the dependencies manually and" +
-                                    " restart the application"
-                            alert.dialogPane.expandableContent = TextField(it.getStackTraceString())
-                                    .apply {
-                                        font = Font.font("Monospaced", 15.0)
-                                    }
-                            alert.showAndWait()
-                        }
-                )
+        downloader
+            .download(getInitialFolder(MainApplication::class.java))
+            .subscribeOn(Schedulers.io())
+            .observeOn(JavaFxScheduler.platform())
+            .subscribe(
+                {
+                    val alert = Alert(Alert.AlertType.INFORMATION)
+                    alert.title = "Download successful"
+                    alert.headerText = "Please restart the application now"
+                    alert.showAndWait()
+                    Platform.exit()
+                },
+                {
+                    val alert = Alert(Alert.AlertType.ERROR)
+                    alert.title = "Download unsuccessful"
+                    alert.headerText = "Please download the dependencies manually and" +
+                        " restart the application"
+                    alert.dialogPane.expandableContent =
+                        TextField(it.getStackTraceString())
+                            .apply {
+                                font = Font.font("Monospaced", 15.0)
+                            }
+                    alert.showAndWait()
+                },
+            )
     }
 }
 

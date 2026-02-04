@@ -12,9 +12,9 @@ import java.nio.file.StandardOpenOption
 import java.util.zip.ZipFile
 
 class FfmpegYoutubeDlDownloader {
-
     companion object {
-        private const val FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/" +
+        private const val FFMPEG_URL =
+            "https://ffmpeg.zeranoe.com/builds/win64/static/" +
                 "ffmpeg-latest-win64-static.zip"
         private const val YT_DLP_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
     }
@@ -25,23 +25,21 @@ class FfmpegYoutubeDlDownloader {
      * @param targetDir the directory to download them to
      * @return returns nothing if it succeeded, throws an error otherwise
      */
-    fun download(targetDir: Path): Single<out Any> {
-        return downloadFfmpeg(targetDir)
-                .flatMap { downloadYtDlp(targetDir) }
-                .toSingle()
-    }
+    fun download(targetDir: Path): Single<out Any> =
+        downloadFfmpeg(targetDir)
+            .flatMap { downloadYtDlp(targetDir) }
+            .toSingle()
 
-    private fun downloadYtDlp(targetDirectory: Path): Maybe<Path> {
-        return downloadFile(
-                targetDirectory.resolve("$YT_DLP_EXECUTABLE.exe"),
-                URL(YT_DLP_URL)
+    private fun downloadYtDlp(targetDirectory: Path): Maybe<Path> =
+        downloadFile(
+            targetDirectory.resolve("$YT_DLP_EXECUTABLE.exe"),
+            URL(YT_DLP_URL),
         )
-    }
 
-    private fun downloadFfmpeg(targetDirectory: Path): Maybe<Path> {
-        return downloadFile(
-                Files.createTempFile("downloadTemp", "SpotDown"),
-                URL(FFMPEG_URL)
+    private fun downloadFfmpeg(targetDirectory: Path): Maybe<Path> =
+        downloadFile(
+            Files.createTempFile("downloadTemp", "SpotDown"),
+            URL(FFMPEG_URL),
         ).map {
             val zipFile = ZipFile(it.toFile())
 
@@ -64,10 +62,12 @@ class FfmpegYoutubeDlDownloader {
 
             targetDirectory
         }
-    }
 
-    private fun downloadFile(path: Path, url: URL): Maybe<Path> {
-        return Maybe.create {
+    private fun downloadFile(
+        path: Path,
+        url: URL,
+    ): Maybe<Path> =
+        Maybe.create {
             try {
                 val connection = url.openConnection()
                 connection.addRequestProperty("User-Agent", "Mozilla/5.0")
@@ -81,7 +81,6 @@ class FfmpegYoutubeDlDownloader {
                 it.onError(e)
             }
         }
-    }
 
     /**
      * Checks whether it needs to download the dependencies.
@@ -91,16 +90,16 @@ class FfmpegYoutubeDlDownloader {
     fun needsToDownloadDependencies(): Single<Boolean> {
         val initialFolder = getInitialFolder(FfmpegYoutubeDlDownloader::class.java)
         return findExecutable("ffmpeg", initialFolder)
-                .map { false }
-                .toSingle(true)
-                .flatMap { foundFfprobe ->
-                    findExecutable("ffprobe", initialFolder)
-                            .map { foundFfprobe }
-                            .toSingle(true)
-                }.flatMap { foundOthers ->
-                    findExecutable(YT_DLP_EXECUTABLE, initialFolder)
-                            .map { foundOthers }
-                            .toSingle(true)
-                }
+            .map { false }
+            .toSingle(true)
+            .flatMap { foundFfprobe ->
+                findExecutable("ffprobe", initialFolder)
+                    .map { foundFfprobe }
+                    .toSingle(true)
+            }.flatMap { foundOthers ->
+                findExecutable(YT_DLP_EXECUTABLE, initialFolder)
+                    .map { foundOthers }
+                    .toSingle(true)
+            }
     }
 }

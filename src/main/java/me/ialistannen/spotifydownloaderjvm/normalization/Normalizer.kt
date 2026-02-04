@@ -7,7 +7,6 @@ import java.nio.file.Path
  * Normalizes a MP3 file.
  */
 interface Normalizer {
-
     /**
      * Normalizes a given file.
      *

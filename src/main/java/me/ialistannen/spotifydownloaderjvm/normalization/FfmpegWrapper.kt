@@ -12,13 +12,12 @@ import java.nio.file.StandardCopyOption
 import java.util.concurrent.TimeUnit
 
 class FfmpegWrapper(
-        private val ffmpegPath: Path,
-        private val ffprobePath: Path,
-        private val targetTruePeak: Double = -1.5,
-        private val targetIntegratedLoudness: Double = -16.0,
-        private val targetLoudnessRangeTarget: Double = 11.0
+    private val ffmpegPath: Path,
+    private val ffprobePath: Path,
+    private val targetTruePeak: Double = -1.5,
+    private val targetIntegratedLoudness: Double = -16.0,
+    private val targetLoudnessRangeTarget: Double = 11.0,
 ) {
-
     companion object {
         val TIME_EXTRACT_PATTERN = Regex("(\\d{2}):(\\d{2}):(\\d{2}).(\\d{2})")
     }
@@ -39,6 +38,7 @@ class FfmpegWrapper(
                         Observable.empty()
                     }
                 }
+
                 is Finished -> {
                     return@flatMap loudnormSecondPass(input, it).map { it / 2 + 0.5 }
                 }
@@ -60,20 +60,28 @@ class FfmpegWrapper(
                 return@create
             }
 
-            val filterArguments = "loudnorm=" +
+            val filterArguments =
+                "loudnorm=" +
                     "I=$targetIntegratedLoudness" +
                     ":TP=$targetTruePeak" +
                     ":LRA=$targetLoudnessRangeTarget" +
                     ":print_format=json"
 
-            val command = listOf(
+            val command =
+                listOf(
                     ffmpegPath.toAbsolutePath().toString(),
-                    "-i", input.toAbsolutePath().toString(),
-                    "-af", filterArguments,
-                    "-codec:a", "libmp3lame",  // nice codec
-                    "-q:a", "2",  // quality
-                    "-f", "null", "-"
-            )
+                    "-i",
+                    input.toAbsolutePath().toString(),
+                    "-af",
+                    filterArguments,
+                    "-codec:a",
+                    "libmp3lame", // nice codec
+                    "-q:a",
+                    "2", // quality
+                    "-f",
+                    "null",
+                    "-",
+                )
             val process = ProcessBuilder(command).start()
 
             val readOutput = arrayListOf<String>()
@@ -84,9 +92,11 @@ class FfmpegWrapper(
 
                     if (extractTime != null) {
                         if (!it.isDisposed) {
-                            it.onNext(FfmpegFirstPassProgress.FirstPassProgress(
-                                    extractTime.toDouble() / durationMs
-                            ))
+                            it.onNext(
+                                FfmpegFirstPassProgress.FirstPassProgress(
+                                    extractTime.toDouble() / durationMs,
+                                ),
+                            )
                         }
                     } else {
                         readOutput.add(line)
@@ -106,12 +116,18 @@ class FfmpegWrapper(
     }
 
     private fun getDurationMs(file: Path): Long? {
-        val process = ProcessBuilder(listOf(
-                ffprobePath.toAbsolutePath().toString(),
-                file.toAbsolutePath().toString()
-        )).start()
+        val process =
+            ProcessBuilder(
+                listOf(
+                    ffprobePath.toAbsolutePath().toString(),
+                    file.toAbsolutePath().toString(),
+                ),
+            ).start()
 
-        return process.errorStream.bufferedReader().readText().extractTime()
+        return process.errorStream
+            .bufferedReader()
+            .readText()
+            .extractTime()
     }
 
     private fun String.extractTime(): Long? {
@@ -133,30 +149,37 @@ class FfmpegWrapper(
      * @param measured the measured values
      * @return an [Observable] that returns the progress
      */
-    fun loudnormSecondPass(input: Path, measured: Finished): Observable<Double> {
-        return create {
+    fun loudnormSecondPass(
+        input: Path,
+        measured: Finished,
+    ): Observable<Double> =
+        create {
             val tempFile = Files.createTempFile("FFmpegWrapper", input.fileName.toString())
             val durationMs = getDurationMs(input)!!
 
-            val filterAguments = listOf(
+            val filterAguments =
+                listOf(
                     "loudnorm=" +
-                            "I=$targetIntegratedLoudness" +
-                            ":TP=$targetTruePeak" +
-                            ":LRA=$targetLoudnessRangeTarget",
+                        "I=$targetIntegratedLoudness" +
+                        ":TP=$targetTruePeak" +
+                        ":LRA=$targetLoudnessRangeTarget",
                     "measured_I=${measured.integratedLoudness}" +
-                            ":measured_TP=${measured.truePeak}" +
-                            ":measured_LRA=${measured.loudnessRangeTarget}",
+                        ":measured_TP=${measured.truePeak}" +
+                        ":measured_LRA=${measured.loudnessRangeTarget}",
                     "measured_thresh=${measured.threshold}:offset=${measured.offset}",
-                    "linear=true:print_format=summary"
-            ).joinToString(":")
+                    "linear=true:print_format=summary",
+                ).joinToString(":")
 
-            val command = listOf(
+            val command =
+                listOf(
                     ffmpegPath.toAbsolutePath().toString(),
                     "-y",
-                    "-i", input.toAbsolutePath().toString(),
-                    "-af", filterAguments,
-                    tempFile.toAbsolutePath().toString()
-            )
+                    "-i",
+                    input.toAbsolutePath().toString(),
+                    "-af",
+                    filterAguments,
+                    tempFile.toAbsolutePath().toString(),
+                )
 
             val process = ProcessBuilder(command).start()
 
@@ -179,22 +202,24 @@ class FfmpegWrapper(
 
             it.onComplete()
         }
-    }
 
     sealed class FfmpegFirstPassProgress {
-        data class FirstPassProgress(val progress: Double) : FfmpegFirstPassProgress()
+        data class FirstPassProgress(
+            val progress: Double,
+        ) : FfmpegFirstPassProgress()
+
         @JsonIgnoreProperties(ignoreUnknown = true)
         data class Finished(
-                @JsonProperty("input_i")
-                val integratedLoudness: Double,
-                @JsonProperty("input_lra")
-                val loudnessRangeTarget: Double,
-                @JsonProperty("input_tp")
-                val truePeak: Double,
-                @JsonProperty("input_thresh")
-                val threshold: Double,
-                @JsonProperty("target_offset")
-                val offset: Double
+            @JsonProperty("input_i")
+            val integratedLoudness: Double,
+            @JsonProperty("input_lra")
+            val loudnessRangeTarget: Double,
+            @JsonProperty("input_tp")
+            val truePeak: Double,
+            @JsonProperty("input_thresh")
+            val threshold: Double,
+            @JsonProperty("target_offset")
+            val offset: Double,
         ) : FfmpegFirstPassProgress()
     }
 }

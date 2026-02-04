@@ -3,7 +3,6 @@ package me.ialistannen.spotifydownloaderjvm.searching
 import me.ialistannen.spotifydownloaderjvm.metadata.Metadata
 
 interface TrackUrlSearcher {
-
     /**
      * Finds the url a track can be downloaded from.
      *

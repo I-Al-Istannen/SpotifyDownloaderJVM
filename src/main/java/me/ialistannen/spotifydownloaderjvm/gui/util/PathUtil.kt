@@ -2,18 +2,24 @@ package me.ialistannen.spotifydownloaderjvm.gui.util
 
 import io.reactivex.Maybe
 import java.io.IOException
-import java.nio.file.*
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-
 
 /**
  * Returns the initial folder this code was loaded from.
  *
  * @return the folder this was loaded from
  */
-fun getInitialFolder(clazz: Class<*>): Path {
-    return Paths.get(clazz.protectionDomain.codeSource.location.toURI()).parent
-}
+fun getInitialFolder(clazz: Class<*>): Path =
+    Paths
+        .get(
+            clazz.protectionDomain.codeSource.location
+                .toURI(),
+        ).parent
 
 /**
  * Finds an executable with the given name in the given initial folder (infitely deep)
@@ -22,7 +28,10 @@ fun getInitialFolder(clazz: Class<*>): Path {
  * @param name the name, case sensitive
  * @param initialFolder the initial folder to search in
  */
-fun findExecutable(name: String, initialFolder: Path): Maybe<Path> {
+fun findExecutable(
+    name: String,
+    initialFolder: Path,
+): Maybe<Path> {
     return Maybe.create { emitter ->
         val initialResult: Path? = findInFolder(initialFolder, name, Integer.MAX_VALUE)
 
@@ -33,30 +42,31 @@ fun findExecutable(name: String, initialFolder: Path): Maybe<Path> {
 
         val path = System.getenv("PATH")
 
-        val filesOnPath = if (path.contains(":")) {
-            path.split(":")
-        } else {
-            path.split(";")
-        }
+        val filesOnPath =
+            if (path.contains(":")) {
+                path.split(":")
+            } else {
+                path.split(";")
+            }
 
-        filesOnPath.map { Paths.get(it) }
-                .filter { Files.exists(it) }
-                .forEach {
-                    if (Files.isRegularFile(it)) {
-                        if (it.fileName.toString() == name) {
-                            emitter.onSuccess(it)
-                        }
-                    } else {
-                        val result = findInFolder(it, name, 2)
-                        if (result != null) {
-                            emitter.onSuccess(result)
-                        }
+        filesOnPath
+            .map { Paths.get(it) }
+            .filter { Files.exists(it) }
+            .forEach {
+                if (Files.isRegularFile(it)) {
+                    if (it.fileName.toString() == name) {
+                        emitter.onSuccess(it)
+                    }
+                } else {
+                    val result = findInFolder(it, name, 2)
+                    if (result != null) {
+                        emitter.onSuccess(result)
                     }
                 }
+            }
 
         emitter.onComplete()
     }
-
 }
 
 /**
@@ -66,30 +76,45 @@ fun findExecutable(name: String, initialFolder: Path): Maybe<Path> {
  * @param name the name, case sensitive
  * @param depth the maximum depth to traverse
  */
-fun findInFolder(folder: Path, name: String, depth: Int): Path? {
+fun findInFolder(
+    folder: Path,
+    name: String,
+    depth: Int,
+): Path? {
     if (!Files.isDirectory(folder)) {
         return null
     }
     var found: Path? = null
-    Files.walkFileTree(folder, emptySet(), depth, object : SimpleFileVisitor<Path>() {
-        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-            if (file.fileName.toString() != name) {
+    Files.walkFileTree(
+        folder,
+        emptySet(),
+        depth,
+        object : SimpleFileVisitor<Path>() {
+            override fun visitFile(
+                file: Path,
+                attrs: BasicFileAttributes,
+            ): FileVisitResult {
+                if (file.fileName.toString() != name) {
+                    return FileVisitResult.CONTINUE
+                }
+
+                if (Files.isExecutable(file)) {
+                    found = file
+                    return FileVisitResult.TERMINATE
+                }
+
                 return FileVisitResult.CONTINUE
             }
 
-            if (Files.isExecutable(file)) {
-                found = file
-                return FileVisitResult.TERMINATE
+            override fun visitFileFailed(
+                file: Path,
+                exc: IOException,
+            ): FileVisitResult {
+                exc.printStackTrace()
+                return FileVisitResult.CONTINUE
             }
-
-            return FileVisitResult.CONTINUE
-        }
-
-        override fun visitFileFailed(file: Path, exc: IOException): FileVisitResult {
-            exc.printStackTrace()
-            return FileVisitResult.CONTINUE
-        }
-    })
+        },
+    )
 
     return found
 }

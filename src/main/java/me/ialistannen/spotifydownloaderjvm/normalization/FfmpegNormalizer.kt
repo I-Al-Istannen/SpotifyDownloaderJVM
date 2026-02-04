@@ -5,12 +5,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 class FfmpegNormalizer(
-        private val ffmpegPath: Path,
-        private val ffprobePath: Path
+    private val ffmpegPath: Path,
+    private val ffprobePath: Path,
 ) : Normalizer {
-
-    override fun normalize(file: Path): Observable<Double> {
-        return Observable.create {
+    override fun normalize(file: Path): Observable<Double> =
+        Observable.create {
             FfmpegWrapper(ffmpegPath, ffprobePath).applyLoudNorm(file).subscribe { progress ->
                 if (!it.isDisposed) {
                     it.onNext(progress)
@@ -19,8 +18,6 @@ class FfmpegNormalizer(
 
             it.onComplete()
         }
-    }
-
 }
 
 fun main() {
