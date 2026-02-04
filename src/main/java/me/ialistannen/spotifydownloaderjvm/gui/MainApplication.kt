@@ -1,5 +1,6 @@
 package me.ialistannen.spotifydownloaderjvm.gui
 
+import atlantafx.base.theme.CupertinoDark
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
 import io.reactivex.schedulers.Schedulers
 import javafx.application.Application
@@ -25,6 +26,9 @@ class MainApplication : Application() {
     }
 
     override fun start(primaryStage: Stage) {
+        // Set AtlantaFX theme
+        setUserAgentStylesheet(CupertinoDark().userAgentStylesheet)
+
         stage = primaryStage
 
         val fxmlLoader = FXMLLoader(javaClass.getResource("/fxml/MainScreen.fxml"))

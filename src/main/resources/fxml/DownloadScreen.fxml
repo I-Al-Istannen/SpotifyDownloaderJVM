@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
@@ -11,9 +10,12 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-  prefHeight="400.0" prefWidth="600.0" styleClass="rootPane"
-  xmlns="http://javafx.com/javafx/8.0.162-ea" xmlns:fx="http://javafx.com/fxml/1"
+  prefHeight="400.0" prefWidth="600.0"
+  xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="me.ialistannen.spotifydownloaderjvm.gui.download.DownloadScreenController">
+  <padding>
+    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+  </padding>
   <center>
     <GridPane BorderPane.alignment="CENTER">
       <columnConstraints>
@@ -26,10 +28,11 @@
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
       </rowConstraints>
       <children>
-        <Label id="playlistName" fx:id="playlistName" text="Some nice playlist"
-          textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
+        <Label fx:id="playlistName" style="-fx-font-size: 1.5em; -fx-font-weight: bold;"
+          text="Playlist name" textAlignment="CENTER"
+          GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
           <GridPane.margin>
-            <Insets bottom="20.0" top="10.0"/>
+            <Insets bottom="15.0" top="10.0"/>
           </GridPane.margin>
         </Label>
         <TableView fx:id="table" maxHeight="1.7976931348623157E308"
@@ -38,10 +41,6 @@
           <GridPane.margin>
             <Insets left="10.0" right="10.0"/>
           </GridPane.margin>
-          <stylesheets>
-            <URL value="@../css/MaterialTableView.css"/>
-            <URL value="@../css/AdjustScrollBars.css"/>
-          </stylesheets>
           <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
           </columnResizePolicy>
@@ -53,14 +52,10 @@
             <Button cancelButton="true" minWidth="100" onAction="#onCancel" text="Cancel"/>
           </buttons>
           <GridPane.margin>
-            <Insets bottom="20.0" right="20.0" top="20.0"/>
+            <Insets bottom="10.0" right="10.0" top="15.0"/>
           </GridPane.margin>
         </ButtonBar>
       </children>
     </GridPane>
   </center>
-  <stylesheets>
-    <URL value="@../css/Base.css"/>
-    <URL value="@../css/DownloadScreen.css"/>
-  </stylesheets>
 </BorderPane>
