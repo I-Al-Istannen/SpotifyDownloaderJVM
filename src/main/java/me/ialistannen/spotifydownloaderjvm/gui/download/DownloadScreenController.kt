@@ -1,8 +1,10 @@
 package me.ialistannen.spotifydownloaderjvm.gui.download
 
+import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.text.Font
+import javafx.stage.Stage
 import javafx.util.Callback
 import me.ialistannen.spotifydownloaderjvm.gui.model.DownloadingTrack
 import me.ialistannen.spotifydownloaderjvm.gui.model.Status
@@ -25,12 +27,18 @@ class DownloadScreenController {
     private fun initialize() {
         val nameColumn = TableColumn<DownloadingTrack, String>("Name").apply {
             setCellValueFactory { it.value.title }
+            prefWidth = 200.0
+            minWidth = 100.0
         }
         val artistColumn = TableColumn<DownloadingTrack, String>("Artist").apply {
             setCellValueFactory { it.value.artist }
+            prefWidth = 150.0
+            minWidth = 80.0
         }
         val statusColumn = TableColumn<DownloadingTrack, Status>("Status").apply {
             setCellValueFactory { it.value.status }
+            prefWidth = 100.0
+            minWidth = 80.0
             cellFactory = Callback {
                 object : TableCell<DownloadingTrack, Status>() {
                     override fun updateItem(item: Status?, empty: Boolean) {
@@ -53,6 +61,8 @@ class DownloadScreenController {
 
         val progressColumn = TableColumn<DownloadingTrack, Number>("Progress").apply {
             setCellValueFactory { it.value.progress }
+            prefWidth = 80.0
+            minWidth = 60.0
             setCellFactory {
                 object : TableCell<DownloadingTrack, Number>() {
                     override fun updateItem(item: Number?, empty: Boolean) {
@@ -64,14 +74,16 @@ class DownloadScreenController {
                             return
                         }
 
-                        text = (item.toDouble() * 100).roundToInt().toString()
+                        text = "${(item.toDouble() * 100).roundToInt()}%"
                     }
                 }
             }
         }
         val errorColumn = TableColumn<DownloadingTrack, String>("Error").apply {
             setCellValueFactory { it.value.error }
-            setCellFactory {
+            prefWidth = 80.0
+            minWidth = 60.0
+            cellFactory = Callback {
                 object : TableCell<DownloadingTrack, String>() {
                     override fun updateItem(item: String?, empty: Boolean) {
                         super.updateItem(item, empty)
@@ -125,6 +137,25 @@ class DownloadScreenController {
      */
     fun setTracks(tracks: List<DownloadingTrack>) {
         table.items.setAll(tracks)
+
+        // Auto-size the window after tracks are loaded
+        table.scene?.window?.let { window ->
+            if (window is Stage) {
+                Platform.runLater {
+                    // Calculate desired height based on track count
+                    val rowHeight = 35.0
+                    val headerHeight = 80.0
+                    val buttonBarHeight = 60.0
+                    val padding = 40.0
+                    val calculatedHeight = headerHeight + (tracks.size * rowHeight) + buttonBarHeight + padding
+
+                    // Apply size with reasonable bounds
+                    window.width = 750.0
+                    window.height = calculatedHeight.coerceIn(400.0, 800.0)
+                    window.centerOnScreen()
+                }
+            }
+        }
     }
 
     /**
